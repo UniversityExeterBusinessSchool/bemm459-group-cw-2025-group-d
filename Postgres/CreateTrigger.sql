@@ -18,79 +18,79 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Triggers for User table
-CREATE TRIGGER trgUserInsert
-BEFORE INSERT ON marketsync.User
+-- Triggers for Users table
+CREATE TRIGGER trgUsersInsert
+BEFORE INSERT ON marketsync.Users
 FOR EACH ROW
 EXECUTE FUNCTION setCreateFields();
 
-CREATE TRIGGER trgUserUpdate
-BEFORE UPDATE ON marketsync.User
+CREATE TRIGGER trgUsersUpdate
+BEFORE UPDATE ON marketsync.Users
 FOR EACH ROW
 EXECUTE FUNCTION setUpdateFields();
 
--- Triggers for Shop table
-CREATE TRIGGER trgShopInsert
-BEFORE INSERT ON marketsync.Shop
+-- Triggers for Shops table
+CREATE TRIGGER trgShopsInsert
+BEFORE INSERT ON marketsync.Shops
 FOR EACH ROW
 EXECUTE FUNCTION setCreateFields();
 
-CREATE TRIGGER trgShopUpdate
-BEFORE UPDATE ON marketsync.Shop
+CREATE TRIGGER trgShopsUpdate
+BEFORE UPDATE ON marketsync.Shops
 FOR EACH ROW
 EXECUTE FUNCTION setUpdateFields();
 
--- Triggers for Product table
-CREATE TRIGGER trgProductInsert
-BEFORE INSERT ON marketsync.Product
+-- Triggers for Products table
+CREATE TRIGGER trgProductsInsert
+BEFORE INSERT ON marketsync.Products
 FOR EACH ROW
 EXECUTE FUNCTION setCreateFields();
 
-CREATE TRIGGER trgProductUpdate
-BEFORE UPDATE ON marketsync.Product
+CREATE TRIGGER trgProductsUpdate
+BEFORE UPDATE ON marketsync.Products
 FOR EACH ROW
 EXECUTE FUNCTION setUpdateFields();
 
--- Triggers for Transaction table
-CREATE TRIGGER trgTransactionInsert
-BEFORE INSERT ON marketsync.Transaction
+-- Triggers for Transactions table
+CREATE TRIGGER trgTransactionsInsert
+BEFORE INSERT ON marketsync.Transactions
 FOR EACH ROW
 EXECUTE FUNCTION setCreateFields();
 
-CREATE TRIGGER trgTransactionUpdate
-BEFORE UPDATE ON marketsync.Transaction
+CREATE TRIGGER trgTransactionsUpdate
+BEFORE UPDATE ON marketsync.Transactions
 FOR EACH ROW
 EXECUTE FUNCTION setUpdateFields();
 
--- Triggers for TransactionState table
-CREATE TRIGGER trgTransactionStateInsert
-BEFORE INSERT ON marketsync.TransactionState
+-- Triggers for TransactionStates table
+CREATE TRIGGER trgTransactionStatesInsert
+BEFORE INSERT ON marketsync.TransactionStates
 FOR EACH ROW
 EXECUTE FUNCTION setCreateFields();
 
-CREATE TRIGGER trgTransactionStateUpdate
-BEFORE UPDATE ON marketsync.TransactionState
+CREATE TRIGGER trgTransactionStatesUpdate
+BEFORE UPDATE ON marketsync.TransactionStates
 FOR EACH ROW
 EXECUTE FUNCTION setUpdateFields();
 
--- Triggers for Logistic table
-CREATE TRIGGER trgLogisticInsert
-BEFORE INSERT ON marketsync.Logistic
+-- Triggers for Logistics table
+CREATE TRIGGER trgLogisticsInsert
+BEFORE INSERT ON marketsync.Logistics
 FOR EACH ROW
 EXECUTE FUNCTION setCreateFields();
 
-CREATE TRIGGER trgLogisticUpdate
-BEFORE UPDATE ON marketsync.Logistic
+CREATE TRIGGER trgLogisticsUpdate
+BEFORE UPDATE ON marketsync.Logistics
 FOR EACH ROW
 EXECUTE FUNCTION setUpdateFields();
 
--- Triggers for LogisticState table
-CREATE TRIGGER trgLogisticStateInsert
-BEFORE INSERT ON marketsync.LogisticState
+-- Triggers for LogisticStates table
+CREATE TRIGGER trgLogisticStatesInsert
+BEFORE INSERT ON marketsync.LogisticStates
 FOR EACH ROW
 EXECUTE FUNCTION setCreateFields();
 
-CREATE TRIGGER trgLogisticStateUpdate
-BEFORE UPDATE ON marketsync.LogisticState
+CREATE TRIGGER trgLogisticStatesUpdate
+BEFORE UPDATE ON marketsync.LogisticStates
 FOR EACH ROW
 EXECUTE FUNCTION setUpdateFields();

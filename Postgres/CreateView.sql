@@ -1,34 +1,34 @@
--- Create view for the User table
-CREATE VIEW marketsync.V_User AS
-SELECT * FROM marketsync.User
+-- Create view for the Users table
+CREATE VIEW marketsync.V_Users AS
+SELECT * FROM marketsync.Users
 WHERE isDelete = FALSE;
 
--- Create view for the Shop table
-CREATE VIEW marketsync.V_Shop AS
-SELECT * FROM marketsync.Shop
+-- Create view for the Shops table
+CREATE VIEW marketsync.V_Shops AS
+SELECT * FROM marketsync.Shops
 WHERE isDelete = FALSE;
 
--- Create view for the Product table
-CREATE VIEW marketsync.V_Product AS
-SELECT * FROM marketsync.Product
+-- Create view for the Products table
+CREATE VIEW marketsync.V_Products AS
+SELECT * FROM marketsync.Products
 WHERE isDelete = FALSE;
 
--- Create view for the Transaction table
-CREATE VIEW marketsync.V_Transaction AS
-SELECT * FROM marketsync.Transaction
+-- Create view for the Transactions table
+CREATE VIEW marketsync.V_Transactions AS
+SELECT * FROM marketsync.Transactions
 WHERE isDelete = FALSE;
 
--- Create view for the TransactionState table
-CREATE VIEW marketsync.V_TransactionState AS
-SELECT * FROM marketsync.TransactionState
+-- Create view for the TransactionStates table
+CREATE VIEW marketsync.V_TransactionStates AS
+SELECT * FROM marketsync.TransactionStates
 WHERE isDelete = FALSE;
 
--- Create view for the Logistic table
-CREATE VIEW marketsync.V_Logistic AS
-SELECT * FROM marketsync.Logistic
+-- Create view for the Logistics table
+CREATE VIEW marketsync.V_Logistics AS
+SELECT * FROM marketsync.Logistics
 WHERE isDelete = FALSE;
 
--- Create view for the LogisticState table
-CREATE VIEW marketsync.V_LogisticState AS
-SELECT * FROM marketsync.LogisticState
+-- Create view for the LogisticStates table
+CREATE VIEW marketsync.V_LogisticStates AS
+SELECT * FROM marketsync.LogisticStates
 WHERE isDelete = FALSE;

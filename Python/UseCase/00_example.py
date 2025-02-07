@@ -7,6 +7,8 @@ from Library.DatabaseConnection import queryPostGreSQL, queryFunctionPostGreSQL
 
 # first way to get user
 def getUser1():
+    query = "SELECT * FROM marketsync.Users"
+    result = queryPostGreSQL("SELECT", query: str):
     return null
 
 # second way to get user

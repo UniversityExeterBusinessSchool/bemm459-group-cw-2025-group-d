@@ -26,8 +26,11 @@ def queryPostGreSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], 
         elif operation == "INSERT":
             # Execute insert query
             cursor.execute(query)
+            # Fetch inserted data
+            row = cursor.fetchone()
             # Commit the transaction
             postgres_connection.commit()
+            return row
         elif operation == "UPDATE":
             # Execute update query
             cursor.execute(query)

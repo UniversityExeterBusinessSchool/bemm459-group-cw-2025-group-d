@@ -1,8 +1,8 @@
 -- Create the schema marketsync
 CREATE SCHEMA marketsync;
 
--- Create the User table
-CREATE TABLE marketsync.User (
+-- Create the Users table
+CREATE TABLE marketsync.Users (
   pkUser SERIAL PRIMARY KEY,
   email VARCHAR(200) NOT NULL,
   createDate TIMESTAMP NOT NULL,
@@ -10,30 +10,30 @@ CREATE TABLE marketsync.User (
   isDelete BOOLEAN NOT NULL
 );
 
--- Create the Shop table
-CREATE TABLE marketsync.Shop (
+-- Create the Shops table
+CREATE TABLE marketsync.Shops (
   pkShop SERIAL PRIMARY KEY,
   shopName VARCHAR(200) NOT NULL,
   fkUser INT NOT NULL,
   createDate TIMESTAMP NOT NULL,
   updateDate TIMESTAMP NOT NULL,
   isDelete BOOLEAN NOT NULL,
-  FOREIGN KEY (fkUser) REFERENCES marketsync.User(pkUser)
+  FOREIGN KEY (fkUser) REFERENCES marketsync.Users(pkUser)
 );
 
--- Create the Product table
-CREATE TABLE marketsync.Product (
+-- Create the Products table
+CREATE TABLE marketsync.Products (
   pkProduct SERIAL PRIMARY KEY,
   productName VARCHAR(200) NOT NULL,
   fkShop INT NOT NULL,
   createDate TIMESTAMP NOT NULL,
   updateDate TIMESTAMP NOT NULL,
   isDelete BOOLEAN NOT NULL,
-  FOREIGN KEY (fkShop) REFERENCES marketsync.Shop(pkShop)
+  FOREIGN KEY (fkShop) REFERENCES marketsync.Shops(pkShop)
 );
 
--- Create the Transaction table
-CREATE TABLE marketsync.Transaction (
+-- Create the Transactions table
+CREATE TABLE marketsync.Transactions (
   pkTransaction SERIAL PRIMARY KEY,
   price FLOAT NOT NULL,
   currency VARCHAR(200) NOT NULL,
@@ -42,23 +42,23 @@ CREATE TABLE marketsync.Transaction (
   createDate TIMESTAMP NOT NULL,
   updateDate TIMESTAMP NOT NULL,
   isDelete BOOLEAN NOT NULL,
-  FOREIGN KEY (fkUserBuyer) REFERENCES marketsync.User(pkUser),
-  FOREIGN KEY (fkShop) REFERENCES marketsync.Shop(pkShop)
+  FOREIGN KEY (fkUserBuyer) REFERENCES marketsync.Users(pkUser),
+  FOREIGN KEY (fkShop) REFERENCES marketsync.Shops(pkShop)
 );
 
--- Create the TransactionState table
-CREATE TABLE marketsync.TransactionState (
+-- Create the TransactionStates table
+CREATE TABLE marketsync.TransactionStates (
   pkTransactionState SERIAL PRIMARY KEY,
   fkTransaction INT NOT NULL,
   transactionStatus VARCHAR(200) NOT NULL,
   createDate TIMESTAMP NOT NULL,
   updateDate TIMESTAMP NOT NULL,
   isDelete BOOLEAN NOT NULL,
-  FOREIGN KEY (fkTransaction) REFERENCES marketsync.Transaction(pkTransaction)
+  FOREIGN KEY (fkTransaction) REFERENCES marketsync.Transactions(pkTransaction)
 );
 
--- Create the Logistic table
-CREATE TABLE marketsync.Logistic (
+-- Create the Logistics table
+CREATE TABLE marketsync.Logistics (
   pkLogistic SERIAL PRIMARY KEY,
   fkShop INT NOT NULL,
   fkUserBuyer INT NOT NULL,
@@ -66,42 +66,42 @@ CREATE TABLE marketsync.Logistic (
   createDate TIMESTAMP NOT NULL,
   updateDate TIMESTAMP NOT NULL,
   isDelete BOOLEAN NOT NULL,
-  FOREIGN KEY (fkShop) REFERENCES marketsync.Shop(pkShop),
-  FOREIGN KEY (fkUserBuyer) REFERENCES marketsync.User(pkUser),
-  FOREIGN KEY (fkTransaction) REFERENCES marketsync.Transaction(pkTransaction)
+  FOREIGN KEY (fkShop) REFERENCES marketsync.Shops(pkShop),
+  FOREIGN KEY (fkUserBuyer) REFERENCES marketsync.Users(pkUser),
+  FOREIGN KEY (fkTransaction) REFERENCES marketsync.Transactions(pkTransaction)
 );
 
--- Create the LogisticState table
-CREATE TABLE marketsync.LogisticState (
+-- Create the LogisticStates table
+CREATE TABLE marketsync.LogisticStates (
   pkLogisticState SERIAL PRIMARY KEY,
   fkLogistic INT NOT NULL,
   logisticStatus VARCHAR(200) NOT NULL,
   createDate TIMESTAMP NOT NULL,
   updateDate TIMESTAMP NOT NULL,
   isDelete BOOLEAN NOT NULL,
-  FOREIGN KEY (fkLogistic) REFERENCES marketsync.Logistic(pkLogistic)
+  FOREIGN KEY (fkLogistic) REFERENCES marketsync.Logistics(pkLogistic)
 );
 
--- Create the Currency table (MasterData)
--- CREATE TABLE marketsync.Currency (
+-- Create the Currencies table (MasterData)
+-- CREATE TABLE marketsync.Currencies (
 --   pkCurrency SERIAL PRIMARY KEY,
 --   currency VARCHAR(200) NOT NULL
 -- );
 
--- Create the TransactionStatus table (MasterData)
--- CREATE TABLE marketsync.TransactionStatus (
+-- Create the TransactionStatuses table (MasterData)
+-- CREATE TABLE marketsync.TransactionStatuses (
 --   pkTransactionStatus SERIAL PRIMARY KEY,
 --   transactionStatus VARCHAR(200) NOT NULL
 -- );
 
--- Create the LogisticStatus table (MasterData)
--- CREATE TABLE marketsync.LogisticStatus (
+-- Create the LogisticStatuses table (MasterData)
+-- CREATE TABLE marketsync.LogisticStatuses (
 --   pkLogisticStatus SERIAL PRIMARY KEY,
 --   logisticStatus VARCHAR(200) NOT NULL
 -- );
 
--- Create the ProductCategory table (MasterData)
--- CREATE TABLE marketsync.ProductCategory (
+-- Create the ProductCategories table (MasterData)
+-- CREATE TABLE marketsync.ProductCategories (
 --   pkProductCategory SERIAL PRIMARY KEY,
 --   productCategory VARCHAR(200) NOT NULL
 -- );
