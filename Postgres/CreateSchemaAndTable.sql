@@ -81,27 +81,3 @@ CREATE TABLE marketsync.LogisticStates (
   isDelete BOOLEAN NOT NULL,
   FOREIGN KEY (fkLogistic) REFERENCES marketsync.Logistics(pkLogistic)
 );
-
--- Create the Currencies table (MasterData)
--- CREATE TABLE marketsync.Currencies (
---   pkCurrency SERIAL PRIMARY KEY,
---   currency VARCHAR(200) NOT NULL
--- );
-
--- Create the TransactionStatuses table (MasterData)
--- CREATE TABLE marketsync.TransactionStatuses (
---   pkTransactionStatus SERIAL PRIMARY KEY,
---   transactionStatus VARCHAR(200) NOT NULL
--- );
-
--- Create the LogisticStatuses table (MasterData)
--- CREATE TABLE marketsync.LogisticStatuses (
---   pkLogisticStatus SERIAL PRIMARY KEY,
---   logisticStatus VARCHAR(200) NOT NULL
--- );
-
--- Create the ProductCategories table (MasterData)
--- CREATE TABLE marketsync.ProductCategories (
---   pkProductCategory SERIAL PRIMARY KEY,
---   productCategory VARCHAR(200) NOT NULL
--- );

@@ -6,12 +6,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 # PostgreSQL connection
 import psycopg2
-# Redis connection
-import redis
 # MongoDB connection
-# from pymongo import MongoClient
-# ElasticSearch connection
-# from elasticsearch import Elasticsearch
+from pymongo import MongoClient
 import env
 from typing import Literal, Callable, Any
 
@@ -84,27 +80,12 @@ def queryFunctionPostgreSQL(functionQuery,functionParameter):
             postgres_connection.close()
             print("PostgreSQL connection is closed")
 
-# Redis connection
-# redis_connection = redis.StrictRedis(
-#     host='localhost',
-#     port=10002,
-#     password='marketsyncpassword',
-#     decode_responses=True
-# )
-# print("Connected to Redis")
-
 # MongoDB connection
-# mongo_connection = MongoClient(
-#     'localhost',
-#     10003,
-#     username='system_admin',
-#     password='marketsyncpassword'
-# )
-# print("Connected to MongoDB")
-
-# Elasticsearch connection
-# es_connection = Elasticsearch(
-#     ['http://localhost:10004'],
-#     http_auth=('elastic', 'marketsyncpassword')
-# )
-# print("Connected to Elasticsearch")
+def getMongoConnection():
+    mongo_connection = MongoClient(
+        'localhost',
+        10003,
+        username='system_admin',
+        password='marketsyncpassword'
+    )
+    return mongo_connection

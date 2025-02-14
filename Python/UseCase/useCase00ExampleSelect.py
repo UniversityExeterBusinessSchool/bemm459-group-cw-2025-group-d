@@ -1,9 +1,13 @@
 import sys
 import os
 # Add the parent directory (Project) to sys.path
+# Env file
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# import env file
+import env
 # Library file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
-from databaseConnection import queryPostgreSQL, queryFunctionPostgreSQL
+from databaseConnection import queryPostgreSQL, queryFunctionPostgreSQL, getMongoConnection
 # ResultObject file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../ResultObject')))
 from resultObject00Example import Example00Query, Example00Result
@@ -31,5 +35,14 @@ def getUser2():
     return result
 
 # run the function
-getUser1()
-getUser2()
+# getUser1()
+# getUser2()
+
+def getUserMongo():
+    client = getMongoConnection()
+    db = client[env.mongoDB_database]
+    collectionUsers = db['Users']
+    # collectionProducts = db['Products']
+    users = collectionUsers.find()  # Get all documents in the collection
+    for user in users:
+        print(user)
