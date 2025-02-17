@@ -57,6 +57,7 @@
     - remove product from user cart in mongodb
 24. User continue cart to payment and create transaction (also choose delivery date)
     - use information from cart to create transaction in SQL
+    - add counter to product in mongodb
     - clear data in cart
 25. Seller change transaction status and continue to logistic
     - change transaction status in SQL
