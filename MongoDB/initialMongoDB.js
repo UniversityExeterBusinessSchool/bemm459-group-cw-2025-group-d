@@ -1,20 +1,19 @@
-use marketsync
+use ("marketsync");
 // Create Users collection
 db.createCollection("Users", {
     validator: {
         $jsonSchema: {
             bsonType: "object",
-            required: ["id", "pkUser", "email", "password", "firstName", "lastName", "fullName", "phoneCountryCode", "phoneNumber", "gender", "address", "cart", "emailConfirmationStatus", "loginToken", "createDate", "updateDate", "isDelete"],
+            required: ["pkUser", "email", "password", "firstName", "lastName", "fullName", "phoneCountryCode", "phoneNumber", "gender", "address", "cart", "emailConfirmationStatus", "loginToken", "createDate", "updateDate", "isDelete"],
             properties: {
-                id: { bsonType: "int", description: "key for this collection" },
                 pkUser: { bsonType: "int", description: "key from RDBMS" },
-                email: { bsonType: "string", pattern: "^[^\s@]+@[^\s@]+\.[^\s@]+$", description: "must be a valid email format" },
+                email: { bsonType: "string", pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", description: "must be a valid email format" },
                 password: { bsonType: "string", description: "hashed password" },
                 firstName: { bsonType: "string" },
                 lastName: { bsonType: "string" },
                 fullName: { bsonType: "string" },
-                phoneCountryCode: { bsonType: "int" },
-                phoneNumber: { bsonType: "int" },
+                phoneCountryCode: { bsonType: "string" },
+                phoneNumber: { bsonType: "string" },
                 gender: { enum: ["Male", "Female", "Unidentify"] },
                 address: {
                     bsonType: "array",
@@ -65,14 +64,16 @@ db.createCollection("Users", {
     }
 });
 
-// Create Products collection
+db.Users.createIndex({ email: 1 }, { name: "emailIndex" });
+db.Users.createIndex({ phoneNumber: 1 }, { name: "phoneNumberIndex" });
+// Create Products c
+// ollection
 db.createCollection("Products", {
     validator: {
         $jsonSchema: {
             bsonType: "object",
-            required: ["id", "pkShop", "shopName", "productName", "productDescription", "productImagePath", "productCategory", "soldAmount", "product", "reviews", "createDate", "updateDate", "isDelete"],
+            required: ["pkShop", "shopName", "productName", "productDescription", "productImagePath", "productCategory", "soldAmount", "product", "reviews", "createDate", "updateDate", "isDelete"],
             properties: {
-                id: { bsonType: "int", description: "key for this collection" },
                 pkShop: { bsonType: "int", description: "key from RDBMS" },
                 shopName: { bsonType: "string" },
                 productName: { bsonType: "string" },
@@ -125,14 +126,17 @@ db.createCollection("Products", {
     }
 });
 
+db.Products.createIndex({ pkShop: 1 }, { name: "pkShopIndex" });
+db.Products.createIndex({ shopName: 1 }, { name: "shopNameIndex" });
+db.Products.createIndex({ productName: 1 }, { name: "productNameIndex" });
+db.Products.createIndex({ productDescription: 1 }, { name: "productDescriptionIndex" });
 // Create Messages collection
 db.createCollection("Messages", {
     validator: {
         $jsonSchema: {
             bsonType: "object",
-            required: ["id", "pkUserBuyer", "pkShop", "chat"],
+            required: ["pkUserBuyer", "pkShop", "chat"],
             properties: {
-                id: { bsonType: "int", description: "key for this collection" },
                 pkUserBuyer: { bsonType: "int", description: "key from RDBMS" },
                 pkShop: { bsonType: "int", description: "key from RDBMS" },
                 chat: {
@@ -152,3 +156,6 @@ db.createCollection("Messages", {
         }
     }
 });
+db.Messages.createIndex({ pkUserBuyer: 1 }, { name: "pkUserBuyerIndex" });
+db.Messages.createIndex({ pkShop: 1 }, { name: "pkShopIndex" });
+

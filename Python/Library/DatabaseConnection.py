@@ -8,6 +8,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import psycopg2
 # MongoDB connection
 from pymongo import MongoClient
+from pymongo.database import Database as MongoDatabase
+# import env file
 import env
 from typing import Literal, Callable, Any
 
@@ -58,7 +60,6 @@ def queryPostgreSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], 
             postgres_connection.close()
             print("PostgreSQL connection is closed")
 
-
 def queryFunctionPostgreSQL(functionQuery,functionParameter):
     try:
         postgres_connection = psycopg2.connect(
@@ -81,11 +82,12 @@ def queryFunctionPostgreSQL(functionQuery,functionParameter):
             print("PostgreSQL connection is closed")
 
 # MongoDB connection
-def getMongoConnection():
+def getMongoConnection() -> MongoDatabase:
     mongo_connection = MongoClient(
-        'localhost',
-        10003,
-        username='system_admin',
-        password='marketsyncpassword'
+        host = env.mongoDB_host,
+        port = env.mongoDB_port,
+        username = env.mongoDB_username,
+        password = env.mongoDB_password
     )
-    return mongo_connection
+    client = mongo_connection[env.mongoDB_database]
+    return client
