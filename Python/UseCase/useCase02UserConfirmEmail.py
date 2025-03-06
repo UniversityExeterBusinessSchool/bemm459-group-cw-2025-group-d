@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 # # Add the parent directory (Project) to sys.path
 # # Library file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
-from databaseConnection import getMongoConnection
+from DatabaseConnection import getMongoConnection
 
 def validation (email):
     # email

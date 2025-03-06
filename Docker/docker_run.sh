@@ -1,4 +1,8 @@
-# postgres
-docker run -d -p 10001:5432 --name marketsync-postgres -e POSTGRES_PASSWORD=marketsyncpassword -e POSTGRES_USER=system_admin -e POSTGRES_DB=marketsync_database postgres:15.10
-# mongodb
-docker run -d -p 10003:27017 --name marketsync-mongo -e MONGO_INITDB_ROOT_USERNAME=system_admin -e MONGO_INITDB_ROOT_PASSWORD=marketsyncpassword mongo:8.0
+# Microsoft SQL Server
+docker run -d --name marketsync_mssql_server -p 10001:1433 -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong!Passw0rd" mcr.microsoft.com/mssql/server:2022-latest
+
+# Mongodb
+docker run -d --name marketsync_mongodb -p 10003:27017 -e MONGO_INITDB_ROOT_USERNAME=system_admin -e MONGO_INITDB_ROOT_PASSWORD=marketsyncpassword mongo:8.0
+
+# Elastic Search
+docker run -d --name marketsync_elasticsearch

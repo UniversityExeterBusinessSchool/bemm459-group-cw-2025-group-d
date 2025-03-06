@@ -8,7 +8,7 @@ import re
 # # Add the parent directory (Project) to sys.path
 # # Library file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
-from databaseConnection import queryPostgreSQL, getMongoConnection
+from DatabaseConnection import queryMSSQL, getMongoConnection
 
 def hashPassword(password):
     hashObject = hashlib.sha256()
@@ -53,14 +53,14 @@ def createUser(email,countryCode,phoneNumber,firstName,lastName,gender,password)
     # SQL
     # Validate duplicate email
     queryCheckDuplicateEmail =  "SELECT pkuser FROM marketsync.v_users WHERE email = '" + email + "'"
-    pkUser = queryPostgreSQL(operation = "SELECT", query = queryCheckDuplicateEmail)
+    pkUser = queryMSSQL(operation = "SELECT", query = queryCheckDuplicateEmail)
     if len(pkUser) > 0:
         raise ValueError(f"Duplicate email: {email}")
     # Insert User
     # Example
     # INSERT INTO marketsync.users (email) VALUES ('test@gmail.com') RETURNING pkuser
     queryInsertUser = "INSERT INTO marketsync.users (email) VALUES ('" + email + "') RETURNING pkuser"
-    pkUser = queryPostgreSQL(operation = "INSERT", query = queryInsertUser)
+    pkUser = queryMSSQL(operation = "INSERT", query = queryInsertUser)
     # Mongodb
     client = getMongoConnection()
     collectionUsers = client['Users']

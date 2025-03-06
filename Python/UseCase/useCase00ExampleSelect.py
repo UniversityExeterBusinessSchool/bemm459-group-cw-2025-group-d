@@ -7,17 +7,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import env
 # Library file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
-from databaseConnection import queryPostgreSQL, queryFunctionPostgreSQL, getMongoConnection
-# ResultObject file
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../ResultObject')))
-from resultObject00Example import Example00Query, Example00Result
+from DatabaseConnection import queryMSSQL, queryFunctionMSSQL, getMongoConnection
 
 # at each function you need to descripe use case of that function 
 
 # first way to get user
 def getUser1():
     query = "SELECT * FROM marketsync.users"
-    result = queryPostgreSQL("SELECT", query)
+    result = queryMSSQL("SELECT", query)
     print(result)
     return result
 
@@ -30,7 +27,7 @@ def getUser2():
         # Commit the transaction
         records = cursor.fetchall()
         return records
-    result = queryFunctionPostgreSQL(functionQuery,funcationParameter)
+    result = queryFunctionMSSQL(functionQuery,funcationParameter)
     print(result)
     return result
 
