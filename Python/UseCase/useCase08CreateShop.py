@@ -1,23 +1,24 @@
+
 import sys
 import os
-# Add Library path
+from datetime import datetime
+
+# Add Library folder to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
-from databaseConnection import queryPostgreSQL
+from MSSQLConnection import query_mssql
 
 def createShop(shopName, fkUser):
+    # T-SQL: Insert new shop and return inserted identity value.
+    # Note: In SQL Server you can use an OUTPUT clause or SCOPE_IDENTITY().
+    query = """
+    INSERT INTO Shops (shopName, fkUser, createDate, updateDate, isDelete)
+    OUTPUT INSERTED.pkShop
+    VALUES (?, ?, GETDATE(), GETDATE(), 0);
     """
-    Create a new shop in SQL.
-    :param shopName: Name of the shop.
-    :param fkUser: Owner's user ID (foreign key to Users table).
-    :return: The newly created shop's primary key (pkShop).
-    """
-    query = f"INSERT INTO marketsync.Shops (shopName, fkUser) VALUES ('{shopName}', {fkUser}) RETURNING pkShop"
-    result = queryPostgreSQL("INSERT", query)
-    shop_id = result[0] if result else None
-    print(f"Shop created with pkShop: {shop_id}")
-    return shop_id
+    result = query_mssql("INSERT", query, (shopName, fkUser))
+    print("Shop created with ID:", result)
+    return result
 
-# Example usage:
-if __name__ == '__main__':
-    # Replace with valid values as needed
+if __name__ == "__main__":
+    # Example usage:
     createShop("Test Shop", 1)
