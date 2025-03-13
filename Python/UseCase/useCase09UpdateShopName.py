@@ -1,18 +1,20 @@
 import sys
 import os
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
-from databaseConnection import queryPostgreSQL
+from MSSQLConnection import query_mssql
 
-def updateShopName(shopId, newShopName):
+def updateShopName(shopId, newName):
+    query = """
+    UPDATE Shops
+    SET shopName = ?, updateDate = GETDATE()
+    WHERE pkShop = ? AND isDelete = 0;
     """
-    Update the name of an existing shop.
-    :param shopId: The shop's primary key.
-    :param newShopName: The new shop name.
-    """
-    query = f"UPDATE marketsync.Shops SET shopName = '{newShopName}' WHERE pkShop = {shopId}"
-    queryPostgreSQL("UPDATE", query)
-    print(f"Shop with pkShop {shopId} updated to new name: {newShopName}")
+    result = query_mssql("UPDATE", query, (newName, shopId))
+    print("Shop updated.")
+    return result
 
-# Example usage:
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # Example usage:
     updateShopName(1, "Updated Shop Name")
+
