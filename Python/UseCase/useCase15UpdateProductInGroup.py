@@ -2,30 +2,24 @@ import sys
 import os
 from datetime import datetime
 from bson.objectid import ObjectId
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 from databaseConnection import getMongoConnection
 
-def updateProductInGroup(productGroupId, pkProduct, updateData):
-    """
-    Update a specific product within a product group.
-    :param productGroupId: The _id of the product group document.
-    :param pkProduct: The product's unique key (from RDBMS) in the product array.
-    :param updateData: A dictionary of product fields to update.
-    """
+def updateProductInGroup(productGroupId, pkProduct, updatedFields):
     client = getMongoConnection()
-    db = client.get_default_database()
-    collectionProducts = db['Products']
-    # Prepare update fields by prefixing with "product.$." for the matched array element.
-    setFields = { f"product.$.{k}": v for k, v in updateData.items() }
-    setFields["product.$.updateDate"] = datetime.now()
-    
-    result = collectionProducts.update_one(
-        { "_id": ObjectId(productGroupId), "product.pkProduct": pkProduct },
-        { "$set": setFields }
+    db = client['marketsync']
+    collection = db['Products']
+    # Ensure the updateDate is refreshed for the product
+    updatedFields["updateDate"] = datetime.now()
+    # Use the positional operator to update the matched product within the array
+    updateSpec = {f"product.$.{key}": value for key, value in updatedFields.items()}
+    result = collection.update_one(
+        {"_id": ObjectId(productGroupId), "product.pkProduct": pkProduct},
+        {"$set": updateSpec}
     )
-    print(f"Product with pkProduct {pkProduct} in product group {productGroupId} updated. Matched: {result.matched_count}, Modified: {result.modified_count}")
-    return result
+    print("Product updated in group. Matched:", result.matched_count, "Modified:", result.modified_count)
+    return result.modified_count
 
-# Example usage:
-if __name__ == '__main__':
-    updateProductInGroup("603d2c1e3b1a4f2a6c8a9d7e", 101, {"productName": "Updated Product Name", "stock": 45})
+if __name__ == "__main__":
+    updateProductInGroup("60d5f4832f8fb814b56fa181", 101, {"productName": "Updated Product Name", "stock": 20})
