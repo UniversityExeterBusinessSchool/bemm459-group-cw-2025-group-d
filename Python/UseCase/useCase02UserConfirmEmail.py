@@ -31,4 +31,5 @@ def confirmUserEmail(email,idCode):
         collectionUsers.update_one({'_id': userObjectId}, {'$set': user})
     print('User email has been confirmed')
 
+# Example usage
 confirmUserEmail('test3@gmail.com','67b5d0556820fe9e9d250440')

@@ -86,4 +86,5 @@ def createUser(email,countryCode,phoneNumber,firstName,lastName,gender,password)
     collectionUsers.insert_one(user)
     print('Successfully create user account')
 
+# Example usage
 createUser("test9@gmail.com",'+1','0123456789','testFirstName','testLastName','Male','testPassword')

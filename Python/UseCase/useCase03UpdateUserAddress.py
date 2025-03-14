@@ -24,5 +24,20 @@ def updateUserAddress(email,address):
     collectionUsers = client['Users']
     user = collectionUsers.find_one({'email': email})
     print('User address has been updated')
+    if user['isDelete'] == False:
+        raise 'User already have been deleted'
+    if(user['email'] == email and user['emailConfirmationStatus'] == 'Unconfirmed'):
+        user['address'] = address
+        collectionUsers.update_one({'_id': userObjectId}, {'$set': user})
+    print('User address has been updated')
 
-updateUserAddress('test3@gmail.com',[])
+# Example usage
+userAddress = {
+    "addressLine1": "123 Main St",
+    "addressLine2": "Apt 4B",
+    "city": "New York",
+    "state": "NY",
+    "country": "USA",
+    "zipCode": 10001
+}
+updateUserAddress('test3@gmail.com',userAddress)

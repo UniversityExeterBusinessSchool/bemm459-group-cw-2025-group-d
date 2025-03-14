@@ -11,3 +11,6 @@ mongoDB_host = "localhost"
 mongoDB_port = 10003
 mongoDB_username = "system_admin"
 mongoDB_password = "marketsyncpassword"
+
+# JWT
+jwt_secret = "marketsyncpassword"
