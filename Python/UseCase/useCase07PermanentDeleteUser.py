@@ -10,17 +10,17 @@ from bson.objectid import ObjectId
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 from DatabaseConnection import getMongoConnection
 
-def hardDeleteUser(user_id: int) -> bool:
+def hardDeleteUser(pkUser: int) -> bool:
     try:
         # MSSQL: Remove the user record
-        mssql_query = f"DELETE FROM marketsync.Users WHERE pkUser = {user_id}"
+        mssql_query = f"DELETE FROM marketsync.Users WHERE pkUser = {pkUser}"
         queryMSSQL("DELETE", mssql_query)
         print("User hard deleted in MSSQL.")
         
         # MongoDB: Remove the user document
         client = getMongoConnection()
         collectionUsers = client['Users']
-        result = collectionUsers.delete_one({"pkUser": user_id})
+        result = collectionUsers.delete_one({"pkUser": pkUser})
         
         if result.deleted_count > 0:
             print("User hard deleted in MongoDB.")

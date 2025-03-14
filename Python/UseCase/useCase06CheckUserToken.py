@@ -24,37 +24,31 @@ def validateToken(email: str, token: str) -> bool:
     try:
         # Decode the token
         decoded = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        
         # Check if the email from the token matches the provided email
         if decoded['email'] != email:
             print("Email mismatch")
             return False
-        
         # Establish MongoDB connection
         client = getMongoConnection()
         collectionUsers = client['Users']
-        
         # Find the user by email
-        user = collectionUsers.find_one({'email': email})
+        query = {"email": email, "emailConfirmationStatus": "Confirmed", "isDelete": False}
+        user = collectionUsers.find_one(query)
         if not user:
             print("User not found")
             return False
-        
         # Check if the token from the frontend matches the token in the backend
         if user['loginToken'] != token:
             print("Token mismatch")
             return False
-        
         # Check if the token has expired
         endDate = datetime.fromisoformat(decoded['endDate'])
-        if endDate < datetime.utcnow():
+        if endDate < datetime.now():
             print("Token has expired")
             return False
-        
         # Additional validation checks can be added here
         print("Token is valid")
         return True
-
     except jwt.ExpiredSignatureError:
         print("Token has expired")
         return False

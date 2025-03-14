@@ -10,10 +10,10 @@ from bson.objectid import ObjectId
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 
 from DatabaseConnection import getMongoConnection
-def softDeleteUser(user_id: int) -> bool:
+def softDeleteUser(pkUser: int) -> bool:
     try:
         # MSSQL: Update isDelete flag to 1
-        mssql_query = f"UPDATE marketsync.Users SET isDelete = 1 WHERE pkUser = {user_id}"
+        mssql_query = f"UPDATE marketsync.Users SET isDelete = 1 WHERE pkUser = {pkUser}"
         queryMSSQL("UPDATE", mssql_query)
         print("User soft deleted in MSSQL.")
         
@@ -21,7 +21,7 @@ def softDeleteUser(user_id: int) -> bool:
         client = getMongoConnection()
         collectionUsers = client['Users']
         result = collectionUsers.update_one(
-            {"pkUser": user_id},
+            {"pkUser": pkUser},
             {"$set": {"isDelete": True}}
         )
         

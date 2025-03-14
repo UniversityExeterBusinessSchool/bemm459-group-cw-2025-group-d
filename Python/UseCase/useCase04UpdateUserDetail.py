@@ -19,7 +19,8 @@ def updateUserDetail(email: str, userDetails: dict):
     validateEmail(email)
     client = getMongoConnection()
     collectionUsers = client['Users']
-    user = collectionUsers.find_one({'email': email})
+    query = {"email": email, "emailConfirmationStatus": "Confirmed", "isDelete": False}
+    user = collectionUsers.find_one(query)
     if not user:
         raise ValueError("User not found")
     if user['isDelete']:

@@ -23,13 +23,16 @@ def confirmUserEmail(email,idCode):
     client = getMongoConnection()
     collectionUsers = client['Users']
     userObjectId = ObjectId(idCode)
-    user = collectionUsers.find_one({'_id': userObjectId})
-    if user['isDelete'] == False:
-        raise 'User already have been deleted'
-    if(user['email'] == email and user['emailConfirmationStatus'] == 'Unconfirmed'):
+    query = {"email": email, "emailConfirmationStatus": "Unconfirmed", "isDelete": False}
+    projection = {"_id": 0, "email": 1}
+    user = collectionUsers.find_one(query, projection)
+    if user:
+        # if user exist
         user['emailConfirmationStatus'] = 'Confirmed'
         collectionUsers.update_one({'_id': userObjectId}, {'$set': user})
-    print('User email has been confirmed')
+        print('User email has been confirmed')
+    else:
+        print("No such user found.")
 
 # Example usage
 if __name__ == "__main__":

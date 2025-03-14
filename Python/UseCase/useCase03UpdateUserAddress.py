@@ -22,7 +22,11 @@ def updateUserAddress(email,address):
     # Mongodb
     client = getMongoConnection()
     collectionUsers = client['Users']
-    user = collectionUsers.find_one({'email': email})
+    query = {"email": email, "emailConfirmationStatus": "Confirmed", "isDelete": False}
+    user = collectionUsers.find_one(query)
+    query = {"emailConfirmationStatus": "Confirmed", "isDelete": False}
+    projection = {"_id": userObjectId, "email": email}  
+    user = collectionUsers.find_one(query, projection)
     print('User address has been updated')
     if user['isDelete'] == False:
         raise 'User already have been deleted'
