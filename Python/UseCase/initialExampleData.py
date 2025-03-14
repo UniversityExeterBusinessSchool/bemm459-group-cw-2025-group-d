@@ -54,7 +54,7 @@ def createUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,passw
     # Validate duplicate email
     queryCheckDuplicateEmail =  "SELECT pkuser FROM marketsync.v_users WHERE email = '" + email + "'"
     pkUser = queryMSSQL(operation = "SELECT", query = queryCheckDuplicateEmail)
-    if len(pkUser) > 0:
+    if pkUser is None:
         raise ValueError(f"Duplicate email: {email}")
     # Insert User
     # Example

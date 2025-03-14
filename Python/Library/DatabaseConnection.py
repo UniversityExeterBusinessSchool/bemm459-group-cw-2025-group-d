@@ -54,10 +54,11 @@ def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query
         print("MSSQL Error:" + str(error))
     finally:
         # Closing the database connection
-        if mssql_connection:
-            cursor.close()
-            mssql_connection.close()
-            print("MSSQL connection is closed")
+        # if mssql_connection:
+        #     cursor.close()
+        #     mssql_connection.close()
+        #     print("MSSQL connection is closed")
+        pass
 
 def queryFunctionMSSQL(functionQuery, functionParameter):
     try:
