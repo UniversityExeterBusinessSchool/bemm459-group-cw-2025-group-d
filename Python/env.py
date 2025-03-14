@@ -1,9 +1,9 @@
 # PostgreSQL environment
-postgreSQL_host = "localhost"
+mssql_server = "localhost"
 postgreSQL_port = 10001
-postgreSQL_database = "marketsync_database"
-postgreSQL_user = "system_admin"
-postgreSQL_password = "marketsyncpassword"
+mssql_database = "marketsync_database"
+mssql_user = "system_admin"
+mssql_password = "marketsyncpassword"
 
 # MongoDB environment
 mongoDB_database = "marketsync"

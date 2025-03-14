@@ -17,7 +17,7 @@ def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query
     try:
         mssql_connection = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};'
-            'SERVER=' + env.mssql_server + ';'
+            'SERVER=' + env.mssql_server + ',' + env.mssql_port + ';'
             'DATABASE=' + env.mssql_database + ';'
             'UID=' + env.mssql_user + ';'
             'PWD=' + env.mssql_password
