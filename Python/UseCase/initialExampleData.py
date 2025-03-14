@@ -47,7 +47,7 @@ def validationCreateUserMock(email,countryCode,phoneNumber,firstName,lastName,ge
 
 def createUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,password,emailConfirmationStatus,isDelete):
     # Validation
-    validation(email,countryCode,phoneNumber,firstName,lastName,gender,password)
+    validationCreateUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,password)
     # Hash password
     hashedPassword = hashPassword(password)
     # SQL
