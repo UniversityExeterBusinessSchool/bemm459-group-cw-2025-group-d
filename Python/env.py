@@ -1,6 +1,6 @@
-# PostgreSQL environment
+# MSsql environment
 mssql_server = "localhost"
-postgreSQL_port = 10001
+mssql_port = 10001
 mssql_database = "marketsync_database"
 mssql_user = "system_admin"
 mssql_password = "marketsyncpassword"
