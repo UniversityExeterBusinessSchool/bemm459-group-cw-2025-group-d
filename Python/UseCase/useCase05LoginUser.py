@@ -57,7 +57,8 @@ def loginUser(email: str, password: str) -> str:
     return token
 
 # Example usage
-email = "test3@gmail.com"
-password = "your_password_here"
-token = loginUser(email, password)
-print("JWT Token:", token)
+if __name__ == "__main__":
+    email = "test3@gmail.com"
+    password = "your_password_here"
+    token = loginUser(email, password)
+    print("JWT Token:", token)

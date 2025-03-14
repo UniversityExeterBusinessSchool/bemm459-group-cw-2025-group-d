@@ -32,16 +32,16 @@ def updateUserDetail(email: str, userDetails: dict):
         updateFields['updateDate'] = datetime.now()
         collectionUsers.update_one({'_id': ObjectId(user['_id'])}, {'$set': updateFields})
         print('User details have been updated')
-        
-# Example usage
-userDetails = {
-    "email": "newemail@example.com",
-    "password": "newhashedpassword",
-    "firstName": "John",
-    "lastName": "Doe",
-    "phoneCountryCode": 1,
-    "phoneNumber": 1234567890,
-    "gender": "Male"
-}
 
-updateUserDetail('test3@gmail.com', userDetails)
+# Example usage
+if __name__ == "__main__":
+    userDetails = {
+        "email": "newemail@example.com",
+        "password": "newhashedpassword",
+        "firstName": "John",
+        "lastName": "Doe",
+        "phoneCountryCode": 1,
+        "phoneNumber": 1234567890,
+        "gender": "Male"
+    }
+    updateUserDetail('test3@gmail.com', userDetails)

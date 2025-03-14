@@ -32,4 +32,5 @@ def confirmUserEmail(email,idCode):
     print('User email has been confirmed')
 
 # Example usage
-confirmUserEmail('test3@gmail.com','67b5d0556820fe9e9d250440')
+if __name__ == "__main__":
+    confirmUserEmail('test3@gmail.com','67b5d0556820fe9e9d250440')

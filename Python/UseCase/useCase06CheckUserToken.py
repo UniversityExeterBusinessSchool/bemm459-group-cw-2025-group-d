@@ -66,7 +66,8 @@ def validateToken(email: str, token: str) -> bool:
         client.close()
 
 # Example usage
-email = "example@example.com"
-token = "your_jwt_token_here"
-isValid = validateToken(email, token)
-print("Is token valid?", isValid)
+if __name__ == "__main__":
+    email = "example@example.com"
+    token = "your_jwt_token_here"
+    isValid = validateToken(email, token)
+    print("Is token valid?", isValid)

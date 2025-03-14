@@ -32,12 +32,13 @@ def updateUserAddress(email,address):
     print('User address has been updated')
 
 # Example usage
-userAddress = {
-    "addressLine1": "123 Main St",
-    "addressLine2": "Apt 4B",
-    "city": "New York",
-    "state": "NY",
-    "country": "USA",
-    "zipCode": 10001
-}
-updateUserAddress('test3@gmail.com',userAddress)
+if __name__ == "__main__":
+    userAddress = {
+        "addressLine1": "123 Main St",
+        "addressLine2": "Apt 4B",
+        "city": "New York",
+        "state": "NY",
+        "country": "USA",
+        "zipCode": 10001
+    }
+    updateUserAddress('test3@gmail.com',userAddress)

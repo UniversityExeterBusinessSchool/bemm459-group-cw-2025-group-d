@@ -42,5 +42,6 @@ def softDeleteUser(user_id: int) -> bool:
             client.close()
 
 # Example usage
-user_id = 1  # Replace with the actual user ID
-softDeleteUser(user_id)
+if __name__ == "__main__":
+    user_id = 1  # Replace with the actual user ID
+    softDeleteUser(user_id)

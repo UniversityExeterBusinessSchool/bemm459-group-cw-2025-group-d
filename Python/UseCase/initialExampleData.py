@@ -16,7 +16,7 @@ def hashPassword(password):
     hashedPassword = hashObject.hexdigest()
     return hashedPassword
 
-def validation(email,countryCode,phoneNumber,firstName,lastName,gender,password):
+def validationCreateUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,password):
     # email
     patternEmail = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     if not re.match(patternEmail, email):
@@ -45,7 +45,7 @@ def validation(email,countryCode,phoneNumber,firstName,lastName,gender,password)
     if len(password) < 8:
         raise ValueError('Password should be longer than 8 characters')
 
-def createUser(email,countryCode,phoneNumber,firstName,lastName,gender,password):
+def createUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,password,emailConfirmationStatus,isDelete):
     # Validation
     validation(email,countryCode,phoneNumber,firstName,lastName,gender,password)
     # Hash password
@@ -59,7 +59,7 @@ def createUser(email,countryCode,phoneNumber,firstName,lastName,gender,password)
     # Insert User
     # Example
     # INSERT INTO marketsync.users (email) VALUES ('test@gmail.com') RETURNING pkuser
-    queryInsertUser = "INSERT INTO marketsync.users (email) VALUES ('" + email + "') RETURNING pkuser"
+    queryInsertUser = "INSERT INTO marketsync.users (email,isDelete) VALUES ('" + email + "' , '" + str(isDelete) + "') RETURNING pkuser"
     pkUser = queryMSSQL(operation = "INSERT", query = queryInsertUser)
     # Mongodb
     client = getMongoConnection()
@@ -77,15 +77,44 @@ def createUser(email,countryCode,phoneNumber,firstName,lastName,gender,password)
         "address": [],
         "cart": [],
         "searchHistory": [],
-        "emailConfirmationStatus": "Unconfirmed",
+        "emailConfirmationStatus": emailConfirmationStatus,
         "loginToken": "",
         "createDate": datetime.now(),
         "updateDate": datetime.now(),
-        "isDelete": False
+        "isDelete": isDelete
     }
     collectionUsers.insert_one(user)
     print('Successfully create user account')
 
 # Example usage
 if __name__ == "__main__":
-    createUser("test9@gmail.com",'+1','0123456789','testFirstName','testLastName','Male','testPassword')
+    # Create Mock Users
+    users = [
+        ("user1@example.com", "+1", "1234567890", "John", "Doe", "Male", "Password123!", "Confirmed", False),
+        ("user2@example.com", "+1", "2345678901", "Jane", "Smith", "Female", "MyP@ssw0rd!", "Confirmed", False),
+        ("user3@example.com", "+1", "3456789012", "Alice", "Johnson", "Female", "Secure123*", "Confirmed", False),
+        ("user4@example.com", "+1", "4567890123", "Bob", "Brown", "Male", "Passw0rd!", "Confirmed", False),
+        ("user5@example.com", "+1", "5678901234", "Charlie", "Davis", "Male", "S@f3Pass!", "Confirmed", False),
+        ("user6@example.com", "+1", "6789012345", "David", "Miller", "Male", "Pa$$word1", "Confirmed", False),
+        ("user7@example.com", "+1", "7890123456", "Eve", "Wilson", "Female", "GoodPass@", "Confirmed", False),
+        ("user8@example.com", "+1", "8901234567", "Frank", "Moore", "Male", "Gr8P@ssw0rd", "Confirmed", False),
+        ("user9@example.com", "+1", "9012345678", "Grace", "Taylor", "Female", "Y0urP@ss", "Confirmed", False),
+        ("user10@example.com", "+1", "0123456789", "Hannah", "Anderson", "Female", "TopS3cret!", "Confirmed", False),
+        ("user11@example.com", "+1", "1234509876", "Ivy", "Thomas", "Female", "B3$tP@ssw0rd", "Confirmed", False),
+        ("user12@example.com", "+1", "2345610987", "Jack", "Jackson", "Male", "Str0ngP@ss", "Confirmed", False),
+        ("user13@example.com", "+1", "3456721098", "Katy", "White", "Female", "P@ssw0rd123", "Confirmed", False),
+        ("user14@example.com", "+1", "4567832109", "Leo", "Harris", "Male", "H@ppyDay!", "Confirmed", False),
+        ("user15@example.com", "+1", "5678943210", "Mia", "Clark", "Female", "S3cur3P@ss", "Confirmed", False),
+        ("user16@example.com", "+1", "6789054321", "Nick", "Lewis", "Male", "T3mpP@ss!", "Unconfirmed", True),
+        ("user17@example.com", "+1", "7890165432", "Olivia", "Walker", "Female", "W3akP@ss123", "Unconfirmed", True),
+        ("user18@example.com", "+1", "8901276543", "Paul", "Hall", "Male", "Myp@ssword", "Unconfirmed", True),
+        ("user19@example.com", "+1", "9012387654", "Quinn", "Allen", "Female", "BasicP@ss", "Unconfirmed", True),
+        ("user20@example.com", "+1", "0123498765", "Rachel", "Young", "Female", "1234P@ss", "Unconfirmed", True)
+    ]
+    for user in users:
+        try:
+            createUserMock(*user)
+            print(f"Successfully created user: {user[0]}")
+        except ValueError as e:
+            print(f"Failed to create user: {user[0]}, Error: {e}")
+
