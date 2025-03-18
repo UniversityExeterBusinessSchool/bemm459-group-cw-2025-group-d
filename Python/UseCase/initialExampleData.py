@@ -23,7 +23,7 @@ def validationCreateUserMock(email,countryCode,phoneNumber,firstName,lastName,ge
         raise ValueError(f"Invalid email address: {email}")
     # country code
     if not countryCode.startswith("+") and 1 <= len(countryCode[1:]) <= 3 and countryCode[1:].isdigit():
-        raise ValueError(f"Invalid country code: {country_code}")
+        raise ValueError(f"Invalid country code: {countryCode}")
     # phonenumber
     if not phoneNumber.isdigit():
         raise ValueError(f"Invalid phone number: {phoneNumber}")
@@ -45,23 +45,25 @@ def validationCreateUserMock(email,countryCode,phoneNumber,firstName,lastName,ge
     if len(password) < 8:
         raise ValueError('Password should be longer than 8 characters')
 
-def createUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,password,emailConfirmationStatus,isDelete):
-    # Validation
-    validationCreateUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,password)
-    # Hash password
+def createUserMock(email, countryCode, phoneNumber, firstName, lastName, gender, password, emailConfirmationStatus, isDelete):
+    validationCreateUserMock(email, countryCode, phoneNumber, firstName, lastName, gender, password)
     hashedPassword = hashPassword(password)
-    # SQL
-    # Validate duplicate email
-    queryCheckDuplicateEmail =  "SELECT pkuser FROM marketsync.v_users WHERE email = '" + email + "'"
-    pkUser = queryMSSQL(operation = "SELECT", query = queryCheckDuplicateEmail)
+    
+    queryCheckDuplicateEmail =  "SELECT pkuser FROM marketsync.v_users WHERE email = ?"
+    pkUser = queryMSSQL(operation="SELECT", query=queryCheckDuplicateEmail, params=(email))
+    if pkUser:
+        print(f"Duplicate email: {email}")
+    queryInsertUser = """
+    SET NOCOUNT ON;
+    DECLARE @InsertedUsers TABLE (pkUser INT);
+    INSERT INTO marketsync.Users (email,isDelete)
+    OUTPUT Inserted.pkUser INTO @InsertedUsers
+    VALUES (?,?);
+    SELECT pkUser FROM @InsertedUsers;
+    """
+    pkUser = queryMSSQL(operation="INSERT", query=queryInsertUser, params=(email,isDelete))
     if pkUser is None:
-        raise ValueError(f"Duplicate email: {email}")
-    # Insert User
-    # Example
-    # INSERT INTO marketsync.users (email) VALUES ('test@gmail.com') RETURNING pkuser
-    queryInsertUser = "INSERT INTO marketsync.users (email,isDelete) VALUES ('" + email + "' , '" + str(isDelete) + "') RETURNING pkuser"
-    pkUser = queryMSSQL(operation = "INSERT", query = queryInsertUser)
-    # Mongodb
+        print(f"Failed to insert user: {email}")
     client = getMongoConnection()
     collectionUsers = client['Users']
     user = {
@@ -70,7 +72,7 @@ def createUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,passw
         "password": hashedPassword,
         "firstName": firstName,
         "lastName": lastName,
-        "fullName": firstName + " " + lastName,
+        "fullName": f"{firstName} {lastName}",
         "phoneCountryCode": countryCode,
         "phoneNumber": phoneNumber,
         "gender": gender,
@@ -84,13 +86,13 @@ def createUserMock(email,countryCode,phoneNumber,firstName,lastName,gender,passw
         "isDelete": isDelete
     }
     collectionUsers.insert_one(user)
-    print('Successfully create user account')
+    print('Successfully created user account')
 
 # Example usage
 if __name__ == "__main__":
     # Create Mock Users
     users = [
-        ("user1@example.com", "+1", "1234567890", "John", "Doe", "Male", "Password123!", "Confirmed", False),
+        ("user111@example.com", "+1", "1234567890", "John", "Doe", "Male", "Password123!", "Confirmed", False),
         ("user2@example.com", "+1", "2345678901", "Jane", "Smith", "Female", "MyP@ssw0rd!", "Confirmed", False),
         ("user3@example.com", "+1", "3456789012", "Alice", "Johnson", "Female", "Secure123*", "Confirmed", False),
         ("user4@example.com", "+1", "4567890123", "Bob", "Brown", "Male", "Passw0rd!", "Confirmed", False),

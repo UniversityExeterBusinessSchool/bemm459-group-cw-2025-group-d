@@ -59,7 +59,14 @@ def createUser(email,countryCode,phoneNumber,firstName,lastName,gender,password)
     # Insert User
     # Example
     # INSERT INTO marketsync.users (email) VALUES ('test@gmail.com') RETURNING pkuser
-    queryInsertUser = "INSERT INTO marketsync.users (email) VALUES ('" + email + "') RETURNING pkuser"
+    queryInsertUser = """
+    SET NOCOUNT ON;
+    DECLARE @InsertedUsers TABLE (pkUser INT);
+    INSERT INTO marketsync.Users (email)
+    OUTPUT Inserted.pkUser INTO @InsertedUsers
+    VALUES (?);
+    SELECT pkUser FROM @InsertedUsers;
+    """
     pkUser = queryMSSQL(operation = "INSERT", query = queryInsertUser)
     # Mongodb
     client = getMongoConnection()

@@ -1,3 +1,7 @@
+-- Select database
+USE marketsync;
+GO
+
 -- Create view for the Users table
 CREATE VIEW marketsync.V_Users AS
 SELECT * 

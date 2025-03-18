@@ -13,52 +13,37 @@ from pymongo.database import Database as MongoDatabase
 import env
 from typing import Literal, Callable, Any
 
-def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query: str):
+def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query: str, params: tuple = ()):
+    mssql_connection = None
+    cursor = None
     try:
         mssql_connection = pyodbc.connect(
             'DRIVER={ODBC Driver 17 for SQL Server};'
-            'SERVER=' + env.mssql_server + ',' + env.mssql_port + ';'
+            'SERVER=' + env.mssql_server + ',' + str(env.mssql_port) + ';'
             'DATABASE=' + env.mssql_database + ';'
             'UID=' + env.mssql_user + ';'
             'PWD=' + env.mssql_password
         )
         cursor = mssql_connection.cursor()
+        cursor.execute(query, params)
         if operation == "SELECT":
-            # Executing the SQL query
-            cursor.execute(query)
-            # Fetching all rows from the executed query
             records = cursor.fetchall()
             return records
         elif operation == "INSERT":
-            # Execute insert query
-            cursor.execute(query)
-            # Fetch inserted data
             row = cursor.fetchone()
-            # Commit the transaction
             mssql_connection.commit()
             return row
-        elif operation == "UPDATE":
-            # Execute update query
-            cursor.execute(query)
-            # Commit the transaction
+        elif operation in ["UPDATE", "DELETE"]:
             mssql_connection.commit()
-        elif operation == "DELETE":
-            # Execute delete query
-            cursor.execute(query)
-            # Commit the transaction
-            mssql_connection.commit()
-        else:
-            raise ValueError("Invalid operation type")
-            
     except Exception as error:
         print("MSSQL Error:" + str(error))
     finally:
-        # Closing the database connection
-        # if mssql_connection:
-        #     cursor.close()
-        #     mssql_connection.close()
-        #     print("MSSQL connection is closed")
-        pass
+        if cursor is not None:
+            cursor.close()
+        if mssql_connection is not None:
+            mssql_connection.close()
+        print("MSSQL connection is closed")
+
 
 def queryFunctionMSSQL(functionQuery, functionParameter):
     try:

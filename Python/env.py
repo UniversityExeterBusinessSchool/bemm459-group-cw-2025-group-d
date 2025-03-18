@@ -1,9 +1,9 @@
 # MSsql environment
 mssql_server = "localhost"
 mssql_port = 10001
-mssql_database = "marketsync_database"
-mssql_user = "system_admin"
-mssql_password = "marketsyncpassword"
+mssql_database = "marketsync"
+mssql_user = "sa"
+mssql_password = "YourStrong!Passw0rd"
 
 # MongoDB environment
 mongoDB_database = "marketsync"
