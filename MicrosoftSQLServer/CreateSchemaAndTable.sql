@@ -43,7 +43,6 @@ GO
 -- Create the Transactions table
 CREATE TABLE marketsync.Transactions (
   pkTransaction INT IDENTITY(1,1) PRIMARY KEY,
-  price FLOAT NOT NULL,
   currency VARCHAR(200) NOT NULL,
   fkUserBuyer INT,
   fkShop INT NOT NULL,
@@ -52,6 +51,21 @@ CREATE TABLE marketsync.Transactions (
   isDelete BIT NOT NULL DEFAULT 0,
   FOREIGN KEY (fkUserBuyer) REFERENCES marketsync.Users(pkUser),
   FOREIGN KEY (fkShop) REFERENCES marketsync.Shops(pkShop)
+);
+GO
+
+-- Create the TransactionProdcut table
+CREATE TABLE marketsync.TransactionProducts (
+  pkTransactionProduct INT IDENTITY(1,1) PRIMARY KEY,
+  fkTransaction INT NOT NULL,
+  fkProduct INT NOT NULL,
+  quantity INT NOT NULL,
+  price FLOAT NOT NULL,
+  createDate DATETIME NOT NULL DEFAULT GETDATE(),
+  updateDate DATETIME NOT NULL DEFAULT GETDATE(),
+  isDelete BIT NOT NULL DEFAULT 0,
+  FOREIGN KEY (fkTransaction) REFERENCES marketsync.Transactions(pkTransaction),
+  FOREIGN KEY (fkProduct) REFERENCES marketsync.Products(pkProduct)
 );
 GO
 
@@ -73,6 +87,7 @@ CREATE TABLE marketsync.Logistics (
   fkShop INT NOT NULL,
   fkUserBuyer INT,
   fkTransaction INT NOT NULL,
+  expectedDeliveryDate DATETIME NOT NULL,
   createDate DATETIME NOT NULL DEFAULT GETDATE(),
   updateDate DATETIME NOT NULL DEFAULT GETDATE(),
   isDelete BIT NOT NULL DEFAULT 0,

@@ -36,6 +36,7 @@ def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query
             mssql_connection.commit()
     except Exception as error:
         print("MSSQL Error:" + str(error))
+        raise
     finally:
         if cursor is not None:
             cursor.close()
@@ -58,6 +59,7 @@ def queryFunctionMSSQL(functionQuery, functionParameter):
         return result
     except Exception as error:
         print("MSSQL Error:" + str(error))
+        raise
     finally:
         # Closing the database connection
         if mssql_connection:
@@ -67,11 +69,17 @@ def queryFunctionMSSQL(functionQuery, functionParameter):
 
 # MongoDB connection
 def getMongoConnection() -> MongoDatabase:
-    mongo_connection = MongoClient(
-        host = env.mongoDB_host,
-        port = env.mongoDB_port,
-        username = env.mongoDB_username,
-        password = env.mongoDB_password
-    )
-    client = mongo_connection[env.mongoDB_database]
-    return client
+    try:
+        mongo_connection = MongoClient(
+            host = env.mongoDB_host,
+            port = env.mongoDB_port,
+            username = env.mongoDB_username,
+            password = env.mongoDB_password
+        )
+        client = mongo_connection[env.mongoDB_database]
+        return client
+    except Exception as error:
+        print("MongoDB Error:" + str(error))
+        raise
+    finally:
+        print("MongoDB connection is closed")

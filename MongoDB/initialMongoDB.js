@@ -63,7 +63,7 @@ db.createCollection("Users", {
         }
     }
 });
-
+db.Users.createIndex({ pkUser: 1 }, { name: "pkUserIndex" }, { unique: true });
 db.Users.createIndex({ email: 1 }, { name: "emailIndex" });
 db.Users.createIndex({ phoneNumber: 1 }, { name: "phoneNumberIndex" });
 // Create Products c
@@ -143,9 +143,10 @@ db.createCollection("Messages", {
                     bsonType: "array",
                     items: {
                         bsonType: "object",
-                        required: ["message", "createDate", "updateDate", "isDelete"],
+                        required: ["message","sender", "createDate", "updateDate", "isDelete"],
                         properties: {
                             message: { bsonType: "string" },
+                            sender: { bsonType: "string" },
                             createDate: { bsonType: "date" },
                             updateDate: { bsonType: "date" },
                             isDelete: { bsonType: "bool" }
