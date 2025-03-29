@@ -7,16 +7,17 @@ from ValidatorUtils import validateString
 from User import validatePKUser
 
 def validatePKShop(pkShop: int):
-    queryCheckPKUser =  "SELECT pkshop FROM marketsync.v_shops WHERE pkshop = ?"
-    shop = queryMSSQL(operation="SELECT", query=queryCheckPKUser, params=(pkShop))
+    query =  "SELECT pkshop FROM marketsync.v_shops WHERE pkshop = ?"
+    shop = queryMSSQL(operation="SELECT", query=query, params=(pkShop))
     if shop is None:
         raise ValueError(f"Invalid pkShop: {pkShop}")
     
 def getShopNameWithPKShop(pkShop: int):
-    queryCheckPKUser =  "SELECT pkshop FROM marketsync.v_shops WHERE pkshop = ?"
-    shop = queryMSSQL(operation="SELECT", query=queryCheckPKUser, params=(pkShop))
+    query =  "SELECT shopName FROM marketsync.v_shops WHERE pkshop = ?"
+    shop = queryMSSQL(operation="SELECT", query=query, params=(pkShop))
     if shop is None:
         raise ValueError(f"Invalid pkShop: {pkShop}")
+    return shop[0][0]
 
 def createShop(fkUser: int,shopName):
     try:
@@ -37,7 +38,7 @@ def createShop(fkUser: int,shopName):
         if pkShop is None:
             raise ValueError(f"Failed to create shop: {shopName} for user {fkUser}")
         print("Shop created successfully")
-        return pkShop
+        return pkShop[0]
     except Exception as error:
         print("Fail to create shop:", error)
         return None
@@ -55,8 +56,8 @@ def updateShopName(pkShop: int, shopName):
             raise ValueError(f"Failed to update shop: {shopName} for shop {pkShop}")
         print("Shop name updated in rdbms database.")
         # Update shop name in mongodb
-        client = getMongoConnection()
-        collectionProducts = client['Products']
+        client,dbname = getMongoConnection()
+        collectionProducts = client[dbname]['Products']
         updateResult = collectionProducts.update_many(
             {"pkShop": pkShop, "isDelete": False},
             {"$set": {"shopName": shopName}}
@@ -78,8 +79,8 @@ def softDeleteShop(pkShop: int):
         queryMSSQL(operation="UPDATE", query=queryUpdateShop, params=(pkShop))
         print("Shop soft deleted in rdbms database.")
         # Get all product relate to shop in mongodb
-        client = getMongoConnection()
-        collectionProducts = client['Products']
+        client,dbname = getMongoConnection()
+        collectionProducts = client[dbname]['Products']
         products = collectionProducts.find({"pkShop": pkShop, "isDelete": False})
         # update product isDelete
         for product in products:

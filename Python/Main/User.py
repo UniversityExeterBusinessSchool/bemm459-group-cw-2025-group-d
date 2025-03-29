@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 # Library file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 from DatabaseConnection import queryMSSQL, getMongoConnection
-from ValidatorUtils import validateEmail, validateCountryCode, validatePhoneNumber, validateString, validateGender, validatePassword, validateEmailConfirmationStatus, validateBoolean, validateAddressList
+from ValidatorUtils import validateEmail, validateCountryCode, validatePhoneNumber, validateString, validateSentence, validateGender, validatePassword, validateEmailConfirmationStatus, validateBoolean, validateAddressList
 from SecurityUtils import hashPassword, comparePasswords, generateToken, decodeAndValidateToken
 
 def validatePKUser(pkUser: int):
@@ -47,14 +47,14 @@ def createUser(email, countryCode, phoneNumber, firstName, lastName, gender, pas
         VALUES (?,?);
         SELECT pkUser FROM @InsertedUsers;
         """
-        pkUser = queryMSSQL(operation="INSERT", query=queryInsertUser, params=(email,isDelete))
+        pkUser = queryMSSQL(operation="INSERT", query=queryInsertUser, params=(email,isDelete))[0]
         if pkUser is None:
             raise ValueError(f"Failed to create user: {email}")
         # Insert data to mongodb collection
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
         user = {
-            "pkUser": int(pkUser[0]),
+            "pkUser": int(pkUser),
             "email": email,
             "password": hashedPassword,
             "firstName": firstName,
@@ -79,16 +79,19 @@ def createUser(email, countryCode, phoneNumber, firstName, lastName, gender, pas
         print("Fail to create user :", error)
         return None
     finally:
-        if 'client' in locals() and client is not None:  # Check if client exists
-            client.close()
+        try:
+            if 'client' in locals() and client is not None:
+                client.close()
+        except Exception as close_error:
+            print(f"Error while closing MongoDB connection: {close_error}")
 
 def confirmUserEmail(pkUser: int):
     try:
         # Check if user exist in rdbms database
         validatePKUser(pkUser)
         # Update data in mongodb collection
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
         projection = {"_id": 1, "pkUser": 1, "email": 1, "emailConfirmationStatus": 1}
         user = collectionUsers.find_one({"pkUser": pkUser, "emailConfirmationStatus": "Unconfirmed"}, projection)
         if not user:
@@ -127,8 +130,8 @@ def updateUserAddress(pkUser: int,addressList):
         # }
         validateAddressList(addressList)
         # Update date to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
         updateResult = collectionUsers.update_one(
             {"pkUser": pkUser, "emailConfirmationStatus": "Confirmed", "isDelete": False},  # Filter
             {"$set": {"address": addressList, "updateDate": datetime.now()}}
@@ -162,8 +165,8 @@ def updateUserDetail(pkUser: int, countryCode, phoneNumber, firstName, lastName,
         # Hash password
         hashedPassword = hashPassword(password)
         # Update data to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
         updateResult = collectionUsers.update_one(
             {"pkUser": pkUser, "emailConfirmationStatus": "Confirmed", "isDelete": False},  # Filter
             {"$set": {
@@ -200,8 +203,8 @@ def loginUser(email: str, password: str) -> str:
         validateEmail(email)
         validatePassword(password)
         # Update login data to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
         query = {"email": email, "emailConfirmationStatus": "Confirmed", "isDelete": False}
         projection = {"_id": 1, "pkUser": 1, "password": 1}
         user = collectionUsers.find_one(query, projection)
@@ -226,8 +229,8 @@ def validateToken(token: str) -> bool:
         email = decodeAndValidateToken(token)
         validateEmail(email)
         # Update login data to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
         query = {"email": email, "emailConfirmationStatus": "Confirmed", "isDelete": False}
         projection = {"_id": 1, "pkUser": 1, "email": 1, "loginToken": 1}
         user = collectionUsers.find_one(query, projection)
@@ -254,8 +257,8 @@ def softDeleteUser(pkUser: int):
         queryMSSQL(operation="UPDATE", query=queryCheckPKUser, params=(pkUser))
         print("User soft deleted in rdbms database.")
         # MongoDB: Update isDelete flag to True
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
         collectionUsers.update_one(
             {"pkUser": pkUser},
             {"$set": {"isDelete": True, "updateDate": datetime.now()}}
@@ -266,3 +269,77 @@ def softDeleteUser(pkUser: int):
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
+
+def getUserByEmail(email: str):
+    try:
+        # Vaidate input
+        validateEmail(email)
+        # Update login data to mongodb
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
+        query = {"email": email, "emailConfirmationStatus": "Confirmed", "isDelete": False}
+        projection = {"_id": 0, "pkUser": 1, "email": 1, "firstName": 1, "lastName": 1, "fullName": 1, "phoneCountryCode": 1, "phoneNumber": 1, "gender": 1, "address": 1, "cart": 1, "searchHistory": 1, "emailConfirmationStatus": 1, "loginToken": 1, "createDate": 1, "updateDate": 1, "isDelete": 1}
+        user = collectionUsers.find_one(query, projection)
+        if not user:
+            raise ValueError("User not found")
+        return user
+    except Exception as error:
+        print("Fail to get user by email:", error)
+        return None
+    finally:
+        if 'client' in locals() and client is not None:  # Check if client exists
+            client.close()
+
+def getUserByFullName(fullName: str):
+    try:
+        # Vaidate input
+        validateString(fullName, "Full name")
+        # Update login data to mongodb
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
+        query = {"fullName": fullName, "emailConfirmationStatus": "Confirmed", "isDelete": False}
+        projection = {"_id": 0, "pkUser": 1, "email": 1, "firstName": 1, "lastName": 1, "fullName": 1, "phoneCountryCode": 1, "phoneNumber": 1, "gender": 1, "address": 1, "cart": 1, "searchHistory": 1, "emailConfirmationStatus": 1, "loginToken": 1, "createDate": 1, "updateDate": 1, "isDelete": 1}
+        user = collectionUsers.find_one(query, projection)
+        if not user:
+            raise ValueError("User not found")
+        return user
+    except Exception as error:
+        print("Fail to get user by full name:", error)
+        return None
+    finally:
+        if 'client' in locals() and client is not None:  # Check if client exists
+            client.close()
+
+def createUserSearchHistory(pkUser: int, keyword: str):
+    try:
+        # Check if user exist in rdbms database
+        validatePKUser(pkUser)
+        # Vaidate input
+        validateSentence(keyword, "Keyword")
+        # Update data to mongodb
+        client,dbname = getMongoConnection()
+        collectionUsers = client[dbname]['Users']
+        searchHistory = {
+            "keyword": keyword,
+            "createDate": datetime.now()
+        }
+        updateResult = collectionUsers.update_one(
+            {"pkUser": pkUser, "emailConfirmationStatus": "Confirmed", "isDelete": False},  # Filter
+            {"$push": {"searchHistory": searchHistory}}
+        )
+        if updateResult.matched_count == 0:
+            # not raise error because it can be annonymous user
+            print(f"No matching user found with pkUser: {pkUser}.")
+            return None
+        if updateResult.modified_count == 1:
+            # Fetch and return the updated document
+            updatedUser = collectionUsers.find_one({"pkUser": pkUser, "emailConfirmationStatus": "Confirmed", "isDelete": False}, {"_id": 1, "pkUser": 1, "searchHistory": 1, "emailConfirmationStatus": 1, "isDelete": 1})
+            print("User successfully updated search history:", updatedUser)
+            return updatedUser
+    except Exception as error:
+        print("Fail to update user search history:", error)
+        return None
+    finally:
+        if 'client' in locals() and client is not None:  # Check if client exists
+            client.close()
+            

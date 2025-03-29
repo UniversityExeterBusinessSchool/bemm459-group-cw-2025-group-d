@@ -16,8 +16,8 @@ def getAllMessageRelateToUser(pkUser):
         # Check if user exist in rdbms database
         validatePKUser(pkUser)
         # Get data from mongodb
-        client = getMongoConnection()
-        collectionMessage = client['Messages']
+        client,dbname = getMongoConnection()
+        collectionMessage = client[dbname]['Messages']
         # Check if product already in cart
         messages = collectionMessage.find({"$or": [{"fkUserSender": pkUser}, {"fkUserReceiver": pkUser}]})
         if messages is None:
@@ -40,8 +40,8 @@ def getMessageBetweenUserAndShop(pkUserBuyer, pkShop):
         # Check if shop exist in rdbms database
         validatePKShop(pkShop)
         # Get data from mongodb
-        client = getMongoConnection()
-        collectionMessage = client['Messages']
+        client,dbname = getMongoConnection()
+        collectionMessage = client[dbname]['Messages']
         # Check if product already in cart
         message = collectionMessage.find_one({"pkUserBuyer": pkUserBuyer, "pkShop": pkShop})
         if message is None:
@@ -62,8 +62,8 @@ def sendUserMessageToShop(pkUser, pkShop, message):
         # Check if shop exist in rdbms database
         validatePKShop(pkShop)
         # Get data from mongodb
-        client = getMongoConnection()
-        collectionMessage = client['Messages']
+        client,dbname = getMongoConnection()
+        collectionMessage = client[dbname]['Messages']
         # Check if product already in cart
         messageData = {
             "message": message,
@@ -103,8 +103,8 @@ def sendShopMessageToUser(pkUser, pkShop, message):
         # Check if shop exist in rdbms database
         validatePKShop(pkShop)
         # Get data from mongodb
-        client = getMongoConnection()
-        collectionMessage = client['Messages']
+        client,dbname = getMongoConnection()
+        collectionMessage = client[dbname]['Messages']
         # Check if product already in cart
         messageData = {
             "message": message,
@@ -143,8 +143,8 @@ def userReviewProduct(fkUser,fkProduct,review):
         # Check if product exist in rdbms database
         validatePKProduct(fkProduct)
         # Get data from mongodb
-        client = getMongoConnection()
-        collectionProduct = client['Products']
+        client,dbname = getMongoConnection()
+        collectionProduct = client[dbname]['Products']
         # Check if product already in cart
         reviewData = {
             "pkUser": fkUser,

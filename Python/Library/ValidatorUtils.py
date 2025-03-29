@@ -1,3 +1,4 @@
+# Regular Expression
 import re
 
 def validateNotNull(value, fieldName):
@@ -30,7 +31,15 @@ def validatePhoneNumber(phoneNumber):
 def validateString(string, fieldName):
     validateNotNull(string, fieldName)
     validateMaxLength(string, fieldName)
-    pattern = r'^[a-zA-Z]+$'
+    # pattern string can contain number
+    pattern = r'^[a-zA-Z0-9\s]+$'
+    if not re.match(pattern, string):
+        raise ValueError(f"Invalid {fieldName}: {string}")
+    
+def validateSentence(string, fieldName):
+    validateNotNull(string, fieldName)
+    validateMaxLength(string, fieldName)
+    pattern = r'^[a-zA-Z0-9\s.,!?;:\'"-]+$'
     if not re.match(pattern, string):
         raise ValueError(f"Invalid {fieldName}: {string}")
     
@@ -46,10 +55,16 @@ def validateStringList(stringList, fieldName):
         validateNotNull(item, f"{fieldName}[{index}]")
         # Ensure each item adheres to the maximum length
         validateMaxLength(item, f"{fieldName}[{index}]")
-        # Ensure each item matches the pattern (only letters)
-        pattern = r'^[a-zA-Z]+$'
+        # Ensure each item matches the pattern (sentence)
+        pattern = r'^[a-zA-Z0-9\s.,!?;:\'"-]+$'
         if not re.match(pattern, item):
             raise ValueError(f"Invalid {fieldName}[{index}]: {item}")
+
+def validateImagePath(productImagePath, fieldName="productImagePath"):
+    validateNotNull(productImagePath, fieldName)
+    validateMaxLength(productImagePath, fieldName)
+    if not isinstance(productImagePath, str):
+        raise ValueError(f"Invalid {fieldName}: must be a string.")
 
 def validateImagePathList(productImagePath, fieldName="productImagePath"):
     # Ensure the field is not null

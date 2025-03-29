@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 from DatabaseConnection import queryMSSQL, getMongoConnection
 from ValidatorUtils import validateTransactionStatus, validateLogisticStatus
-from Product import validateProductGroupId, validatePKProduct
+from Product import getfkShopfromProduct, validateProductGroupId, validatePKProduct
 from User import validatePKUser
 
 def validateTransactionPK(pkTransaction: int):
@@ -16,14 +16,21 @@ def validateTransactionPK(pkTransaction: int):
     transaction = queryMSSQL(operation="SELECT", query=queryCheckPKTransaction, params=(pkTransaction))
     if transaction is None:
         raise ValueError(f"Invalid pkTransaction: {pkTransaction}")
+                         
+def checkIsTransactionCompleted(pkTransaction: int):
+    # check if transaction is completed
+    queryCheckPKTransaction =  "SELECT fkTransaction FROM marketsync.v_transactionstates WHERE fkTransaction = ? AND transactionStatus = ?"
+    transaction = queryMSSQL(operation="SELECT", query=queryCheckPKTransaction, params=(pkTransaction, "Completed"))
+    if transaction is None:
+        raise ValueError(f"Transaction Status is not Completed.")
 
 def getProductGroupTransactionHistory(productGroupId):
     try:
         # validate product group id
         validateProductGroupId(productGroupId)
         # Get data from mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
         collection = db['Products']
         productGroup = collection.find_one({"_id": ObjectId(productGroupId)}, {"product": 1})
         if productGroup is None:
@@ -73,14 +80,13 @@ def addProductToCart(fkUser: int, fkProduct: int, quantity: int):
         validatePKUser(fkUser)
         # Check if product exist in rdbms database
         validatePKProduct(fkProduct)
-        if product is None:
-            raise ValueError(f"Invalid productId: {fkProduct}")
         # Check if quantity is valid
         if quantity <= 0:
             raise ValueError(f"Invalid quantity: {quantity}")
         # Update data to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
+        collectionUsers = db['Users']
         # Check if product already in cart
         user = collectionUsers.find_one({"pkUser": fkUser}, {"cart": 1})
         if user is None:
@@ -93,7 +99,7 @@ def addProductToCart(fkUser: int, fkProduct: int, quantity: int):
                 break
         if not productExist:
             # Get product price from mongodb
-            collectionProduct = client['Products']
+            collectionProduct = db['Products']
             product = collectionProduct.find_one({"product.pkProduct": fkProduct}, {"product.$": 1})
             if product is None:
                 raise ValueError(f"Invalid fkProduct: {fkProduct}")
@@ -129,8 +135,9 @@ def removeProductFromCart(fkUser: int, fkProduct: int):
         # Check if product exist in rdbms database
         validatePKProduct(fkProduct)
         # Update data to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
+        collectionUsers = db['Users']
         # Check if product already in cart
         user = collectionUsers.find_one({"pkUser": fkUser}, {"cart": 1})
         if user is None:
@@ -164,8 +171,9 @@ def editProductQuantityInCart(fkUser: int, fkProduct: int, quantity: int):
         if quantity <= 0:
             raise ValueError(f"Invalid quantity: {quantity}")
         # Update data to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
+        collectionUsers = db['Users']
         # Check if product already in cart
         user = collectionUsers.find_one({"pkUser": fkUser}, {"cart": 1})
         if user is None:
@@ -195,8 +203,9 @@ def getUserCart(fkUser: int):
         # Check if user exist in rdbms database
         validatePKUser(fkUser)
         # Get data from mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
+        collectionUsers = db['Users']
         # Check if product already in cart
         user = collectionUsers.find_one({"pkUser": fkUser}, {"cart": 1})
         if user is None:
@@ -214,8 +223,9 @@ def clearCart(fkUser: int):
         # Check if user exist in rdbms database
         validatePKUser(fkUser)
         # Update data to mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
+        collectionUsers = db['Users']
         # Check if product already in cart
         user = collectionUsers.find_one({"pkUser": fkUser}, {"cart": 1})
         if user is None:
@@ -239,8 +249,9 @@ def cartToPayment(fkUser: int):
         # Check if user exist in rdbms database
         validatePKUser(fkUser)
         # Get data from mongodb
-        client = getMongoConnection()
-        collectionUsers = client['Users']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
+        collectionUsers = db['Users']
         # Check if product already in cart
         user = collectionUsers.find_one({"pkUser": fkUser}, {"cart": 1})
         if user is None:
@@ -250,41 +261,41 @@ def cartToPayment(fkUser: int):
         # Validate fkProduct
         for item in user["cart"]:
             validatePKProduct(item["pkProduct"])
+        # loop user["cart"] to get pkProduct then use it to create transaction, transactionproduct,transactionstatus "Processing"
+        totalPrice = 0
+        for item in user["cart"]:
+            totalPrice += item["quantity"] * item["price"]
         # Insert data to rdbms database
         queryInsertTransaction = """
         SET NOCOUNT ON;
         DECLARE @InsertedTransaction TABLE (pkTransaction INT);
-        INSERT INTO marketsync.Transactions (price, currency, fkUserBuyer, fkShop)
+        INSERT INTO marketsync.Transactions (fkUserBuyer, totalPrice)
         OUTPUT Inserted.pkTransaction INTO @InsertedTransaction
-        VALUES (?, ?, ?, ?);
+        VALUES (?, ?);
         SELECT pkTransaction FROM @InsertedTransaction;
         """
-        totalPrice = 0
-        for item in user["cart"]:
-            totalPrice += item["quantity"] * item["price"]
-        # Get shop id from product
-        collectionProduct = client['Products']
-        product = collectionProduct.find_one({"product.pkProduct": user["cart"][0]["pkProduct"]}, {"product.$": 1})
-        if product is None:
-            raise ValueError(f"Invalid fkProduct: {user['cart'][0]['pkProduct']}")
-        fkShop = product["product"][0]["fkShop"]
-        pkTransaction = queryMSSQL(operation="INSERT", query=queryInsertTransaction, params=(totalPrice, "USD", fkUser, fkShop))
+        pkTransaction = queryMSSQL(operation="INSERT", query=queryInsertTransaction, params=(fkUser, totalPrice))[0]
+        if pkTransaction is None:
+            raise ValueError(f"Failed to create transaction for user: {fkUser}")
         # Insert transaction product
-        queryInsertTransactionProduct = """
-        INSERT INTO marketsync.TransactionProducts (fkTransaction, fkProduct, quantity, price)
-        VALUES (?, ?, ?, ?);
-        """
         for item in user["cart"]:
-            queryMSSQL(operation="INSERT", query=queryInsertTransactionProduct, params=(pkTransaction, item["pkProduct"], item["quantity"], item["price"]))
+            # Get fkShop from first product
+            fkShop = getfkShopfromProduct(item["pkProduct"])
+            queryInsertTransactionProduct = """
+            INSERT INTO marketsync.TransactionProducts (fkTransaction, fkShop, fkProduct, quantity, price)
+            VALUES (?, ?, ?, ?, ?);
+            """
+            queryMSSQL(operation="INSERT_WITHOUT_FETCH", query=queryInsertTransactionProduct, params=(pkTransaction, fkShop, item["pkProduct"], item["quantity"], item["price"]))
         # Insert transaction status
         queryInsertTransactionStatus = """
         INSERT INTO marketsync.TransactionStates (fkTransaction, transactionStatus)
         VALUES (?, ?);
         """
-        queryMSSQL(operation="INSERT", query=queryInsertTransactionStatus, params=(pkTransaction, "Processing"))
+        queryMSSQL(operation="INSERT_WITHOUT_FETCH", query=queryInsertTransactionStatus, params=(pkTransaction, "Processing"))
         # Clear cart
         clearCart(fkUser)
         print("Transaction created.")
+        return pkTransaction
     except Exception as error:
         print("Fail to create transaction:", error)
     finally:
@@ -312,49 +323,38 @@ def changeTransactionStatus(pkTransaction: int, transactionStatus: str):
         INSERT INTO marketsync.TransactionStates (fkTransaction, transactionStatus)
         VALUES (?, ?);
         """
-        queryMSSQL(operation="INSERT", query=queryInsertTransactionStatus, params=(pkTransaction, transactionStatus))
+        queryMSSQL(operation="INSERT_WITHOUT_FETCH", query=queryInsertTransactionStatus, params=(pkTransaction, transactionStatus))
         print("Transaction status updated.")
     except Exception as error:
         print("Fail to update transaction status:", error)
-        
 
 def createLogistic(pkTransaction: int, deliveryDate: datetime):
     # create logistic with pktransaction also need to check that transaction is completed first
     try:
         # Validate transaction pk
         validateTransactionPK(pkTransaction)
-        # Check if transaction exist in rdbms database
-        queryCheckTransaction = """
-        SELECT pkTransaction FROM marketsync.Transactions WHERE pkTransaction = ?
-        """
-        transaction = queryMSSQL(operation="SELECT", query=queryCheckTransaction, params=(pkTransaction))
-        if transaction is None:
-            raise ValueError(f"Invalid pkTransaction: {pkTransaction}")
         # Check if transaction status is completed
-        queryCheckTransactionStatus = """
-        SELECT transactionStatus FROM marketsync.TransactionStates WHERE fkTransaction = ? ORDER BY createDate DESC
-        """
-        transactionStatus = queryMSSQL(operation="SELECT", query=queryCheckTransactionStatus, params=(pkTransaction))
-        if transactionStatus is None:
-            raise ValueError(f"Invalid pkTransaction: {pkTransaction}")
-        if transactionStatus[0] != "Completed":
-            raise ValueError(f"Transaction status is not completed")
-        # Get fkShop and fkUserBuyer from transaction
-        queryGetTransaction = """
-        SELECT fkShop, fkUserBuyer FROM marketsync.Transactions WHERE pkTransaction = ?
-        """
-        transaction = queryMSSQL(operation="SELECT", query=queryGetTransaction, params=(pkTransaction))
-        if transaction is None:
-            raise ValueError(f"Invalid pkTransaction: {pkTransaction}")
-        fkShop = transaction[0]
-        fkUserBuyer = transaction[1]
+        checkIsTransactionCompleted(pkTransaction)
         # Insert data to rdbms database
         queryInsertLogistic = """
-        INSERT INTO marketsync.Logistics (fkShop, fkUserBuyer, fkTransaction, expectedDeliveryDate)
-        VALUES (?, ?, ?, ?);
+        SET NOCOUNT ON;
+        DECLARE @InsertedLogistic TABLE (pkLogistic INT);
+        INSERT INTO marketsync.Logistics (fkTransaction, expectedDeliveryDate)
+        OUTPUT Inserted.pkLogistic INTO @InsertedLogistic
+        VALUES (?, ?);
+        SELECT pkLogistic FROM @InsertedLogistic;
         """
-        queryMSSQL(operation="INSERT", query=queryInsertLogistic, params=(fkShop, fkUserBuyer, pkTransaction, deliveryDate))
+        pkLogistic = queryMSSQL(operation="INSERT", query=queryInsertLogistic, params=(pkTransaction, deliveryDate))[0]
+        if pkLogistic is None:
+            raise ValueError(f"Failed to create logistic for transaction: {pkTransaction}")
+        # Insert logistic status
+        queryInsertLogisticStatus = """
+        INSERT INTO marketsync.LogisticStates (fkLogistic, logisticStatus)
+        VALUES (?, ?);
+        """
+        queryMSSQL(operation="INSERT_WITHOUT_FETCH", query=queryInsertLogisticStatus, params=(pkLogistic, "Processing"))
         print("Logistic created.")
+        return pkLogistic
     except Exception as error:
         print("Fail to create logistic:", error)
         
@@ -375,7 +375,7 @@ def changeLogisticStatus(pkLogistic: int, logisticStatus: str):
         INSERT INTO marketsync.LogisticStates (fkLogistic, logisticStatus)
         VALUES (?, ?);
         """
-        queryMSSQL(operation="INSERT", query=queryInsertLogisticStatus, params=(pkLogistic, logisticStatus))
+        queryMSSQL(operation="INSERT_WITHOUT_FETCH", query=queryInsertLogisticStatus, params=(pkLogistic, logisticStatus))
         print("Logistic status updated.")
     except Exception as error:
         print("Fail to update logistic status:", error)

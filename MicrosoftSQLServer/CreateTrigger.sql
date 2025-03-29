@@ -2,30 +2,6 @@
 USE marketsync;
 GO
 
--- Insert Trigger for Logistics table
-CREATE OR ALTER TRIGGER trgLogisticsInsert
-ON marketsync.Logistics
-INSTEAD OF INSERT
-AS
-BEGIN
-    INSERT INTO marketsync.Logistics (fkShop, fkUserBuyer, fkTransaction, createDate, updateDate, isDelete) 
-    SELECT fkShop, fkUserBuyer, fkTransaction, GETDATE(), GETDATE(), 0
-    FROM inserted;
-END;
-GO
-
--- Insert Trigger for LogisticStates table
-CREATE OR ALTER TRIGGER trgLogisticStatesInsert
-ON marketsync.LogisticStates
-INSTEAD OF INSERT
-AS
-BEGIN
-    INSERT INTO marketsync.LogisticStates (fkLogistic, logisticStatus, createDate, updateDate, isDelete) 
-    SELECT fkLogistic, logisticStatus, GETDATE(), GETDATE(), 0
-    FROM inserted;
-END;
-GO
-
 -- Update Trigger for Users table
 CREATE OR ALTER TRIGGER trgUsersUpdate
 ON marketsync.Users
@@ -81,10 +57,7 @@ AS
 BEGIN
     UPDATE marketsync.Transactions
     SET updateDate = GETDATE(),
-        price = i.price,
-        currency = i.currency,
         fkUserBuyer = i.fkUserBuyer,
-        fkShop = i.fkShop,
         isDelete = i.isDelete
     FROM marketsync.Transactions t
     JOIN inserted i ON t.pkTransaction = i.pkTransaction;
@@ -115,8 +88,6 @@ AS
 BEGIN
     UPDATE marketsync.Logistics
     SET updateDate = GETDATE(),
-        fkShop = i.fkShop,
-        fkUserBuyer = i.fkUserBuyer,
         fkTransaction = i.fkTransaction,
         isDelete = i.isDelete
     FROM marketsync.Logistics l

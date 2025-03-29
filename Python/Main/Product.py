@@ -7,16 +7,15 @@ from bson.objectid import ObjectId
 # Library file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 from DatabaseConnection import queryMSSQL, getMongoConnection
-from ValidatorUtils import validateString, validateStringList, validateImagePathList, validateFloatOrDouble
+from ValidatorUtils import validateString, validateSentence, validateStringList, validateImagePath, validateFloatOrDouble
 from Shop import validatePKShop, getShopNameWithPKShop
 from User import validatePKUser
 
 def validateProductGroupId(productGroupId) -> bool:
     try:
         # Get data from mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         productGroup = collection.find_one({"_id": ObjectId(productGroupId)}, {"_id": 0})
         if productGroup is None:
             raise ValueError(f"Invalid productGroupId: {productGroupId}")
@@ -29,9 +28,8 @@ def validateProductGroupId(productGroupId) -> bool:
 def getfkShopFromProductGroup(productGroupId):
     try:
         # Get data from mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         productGroup = collection.find_one({"_id": ObjectId(productGroupId)}, {"pkShop": 1})
         if productGroup is None:
             raise ValueError(f"Invalid productGroupId: {productGroupId}")
@@ -41,6 +39,13 @@ def getfkShopFromProductGroup(productGroupId):
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
+
+def getfkShopfromProduct(pkProduct: int):
+    query =  "SELECT fkShop FROM marketsync.v_products WHERE pkProduct = ?"
+    shop = queryMSSQL(operation="SELECT", query=query, params=(pkProduct))
+    if shop is None:
+        raise ValueError(f"Invalid pkProduct: {pkProduct}")
+    return shop[0][0]
 
 def validatePKProduct(pkProduct):
     try:        
@@ -58,16 +63,15 @@ def createProductGroup(fkShop: int, groupName, groupDescription, productImagePat
         # Check if shop exist in rdbms database
         validatePKShop(fkShop)
         # Validate Value
-        validateString(groupName, "Group name")
-        validateString(groupDescription, "Group description")
-        validateImagePathList(productImagePath, "Product image path")
+        validateSentence(groupName, "Group name")
+        validateSentence(groupDescription, "Group description")
+        validateImagePath(productImagePath, "Product image path")
         validateStringList(productCategory, "Product category")
         # Get shop name
         shopName = getShopNameWithPKShop(fkShop)
         # Insert data to mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         productGroup = {
             "pkShop": fkShop,
             "shopName": shopName,
@@ -83,10 +87,9 @@ def createProductGroup(fkShop: int, groupName, groupDescription, productImagePat
             "isDelete": isDelete
         }
         result = collection.insert_one(productGroup)
-        print("Product group created with id:", result.inserted_id)
         return result.inserted_id
     except Exception as error:
-        print("Fail to delete user:", error)
+        print("Fail to create ProductGroup:", error)
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
@@ -94,14 +97,13 @@ def createProductGroup(fkShop: int, groupName, groupDescription, productImagePat
 def updateProductGroup(productGroupId, groupName, groupDescription, productImagePath, productCategory):
     try:
         # Validate Value
-        validateString(groupName, "Group name")
-        validateString(groupDescription, "Group description")
+        validateSentence(groupName, "Group name")
+        validateSentence(groupDescription, "Group description")
         validateString(productImagePath, "Product image path")
         validateStringList(productCategory, "Product category")
         # Update data to mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         updatedFields = {
             "productName": groupName,
             "productDescription": groupDescription,
@@ -121,9 +123,8 @@ def updateProductGroup(productGroupId, groupName, groupDescription, productImage
 def deleteProductGroup(productGroupId):
     try:
         # Delete data to mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         result = collection.update_one(
             {"_id": ObjectId(productGroupId)},
             {"$set": {"isDelete": True, "updateDate": datetime.now()}}
@@ -143,9 +144,9 @@ def createProductToProductGroup(productGroupId, productName, productDescription,
         # get fkshop from product group
         fkShop = getfkShopFromProductGroup(productGroupId)
         # Validate Value
-        validateString(productName, "Product name")
-        validateString(productDescription, "Product description")
-        validateImagePathList(productImagePath, "Product image path")
+        validateSentence(productName, "Product name")
+        validateSentence(productDescription, "Product description")
+        validateImagePath(productImagePath, "Product image path")
         validateFloatOrDouble(productPrice, "Product price")
         # Insert product data to rdbms
         queryInsertProduct = """
@@ -156,15 +157,14 @@ def createProductToProductGroup(productGroupId, productName, productDescription,
         VALUES (?,?)
         SELECT pkProduct FROM @InsertedProducts;
         """
-        pkProduct = queryMSSQL(operation="INSERT", query=queryInsertProduct, params=(productName,fkShop))
+        pkProduct = queryMSSQL(operation="INSERT", query=queryInsertProduct, params=(productName,fkShop))[0]
         if pkProduct is None:
             raise ValueError(f"Failed to create product: {productName}")
         # Update data to mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         product = {
-            "pkProduct": int(pkProduct[0]),
+            "pkProduct": int(pkProduct),
             "productName": productName,
             "productDescription": productDescription,
             "productImagePath": productImagePath,
@@ -178,7 +178,7 @@ def createProductToProductGroup(productGroupId, productName, productDescription,
             {"$push": {"product": product}}
         )
         print("Product added to group. Matched:", result.matched_count, "Modified:", result.modified_count)
-        return result.modified_count
+        return pkProduct
     except Exception as error:
         print("Fail to add product to group:", error)
     finally:
@@ -214,9 +214,8 @@ def updateProductToProductGroup(productGroupId, fkProduct, productName, productD
         if not productExist:
             raise ValueError(f"Product {fkProduct} not found in product group {productGroupId}")
         # Update product data to mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         updatedFields = {
             "product.$.productName": productName,
             "product.$.productDescription": productDescription,
@@ -248,9 +247,8 @@ def deleteProductFromProductGroup(productGroupId, fkProduct):
         if queryMSSQL(operation="SELECT", query="SELECT pkProduct FROM marketsync.Products WHERE pkProduct = ? AND isDelete = 1", params=(fkProduct)) is None:
             raise ValueError(f"Failed to delete product: {fkProduct}")
         # Check if product exist in product group
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         productGroup = collection.find_one({"_id": ObjectId(productGroupId)}, {"product": 1})
         if productGroup is None:
             raise ValueError(f"Invalid productGroupId: {productGroupId}")
@@ -280,9 +278,8 @@ def searchProduct(productName):
         # Validate Value
         validateString(productName, "Product name")
         # Get data from mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         # Search product name or product description in product group
         productGroups = collection.find({
             "$or": [
@@ -310,9 +307,8 @@ def searchProductWithCategory(productName,productCategory):
         validateString(productName, "Product name")
         validateStringList(productCategory, "Product category")
         # Get data from mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
-        collection = db['Products']
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         # Search product name or product description in product group
         productGroups = collection.find({
             "$and": [
@@ -350,8 +346,8 @@ def getUserRecommendations(pkUser,size):
         if size <= 0:
             raise ValueError(f"Invalid size: {size}")
         # Get data from mongodb database
-        client = getMongoConnection()
-        db = client['marketsync']
+        client,dbname = getMongoConnection()
+        db = client[dbname]
         collectionUser = db['Users']
         collectionProduct = db['Products']
         # Get user search history

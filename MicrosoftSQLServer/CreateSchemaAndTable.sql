@@ -43,14 +43,12 @@ GO
 -- Create the Transactions table
 CREATE TABLE marketsync.Transactions (
   pkTransaction INT IDENTITY(1,1) PRIMARY KEY,
-  currency VARCHAR(200) NOT NULL,
   fkUserBuyer INT,
-  fkShop INT NOT NULL,
+  totalPrice FLOAT NOT NULL,
   createDate DATETIME NOT NULL DEFAULT GETDATE(),
   updateDate DATETIME NOT NULL DEFAULT GETDATE(),
   isDelete BIT NOT NULL DEFAULT 0,
   FOREIGN KEY (fkUserBuyer) REFERENCES marketsync.Users(pkUser),
-  FOREIGN KEY (fkShop) REFERENCES marketsync.Shops(pkShop)
 );
 GO
 
@@ -58,6 +56,7 @@ GO
 CREATE TABLE marketsync.TransactionProducts (
   pkTransactionProduct INT IDENTITY(1,1) PRIMARY KEY,
   fkTransaction INT NOT NULL,
+  fkShop INT NOT NULL,
   fkProduct INT NOT NULL,
   quantity INT NOT NULL,
   price FLOAT NOT NULL,
@@ -65,6 +64,7 @@ CREATE TABLE marketsync.TransactionProducts (
   updateDate DATETIME NOT NULL DEFAULT GETDATE(),
   isDelete BIT NOT NULL DEFAULT 0,
   FOREIGN KEY (fkTransaction) REFERENCES marketsync.Transactions(pkTransaction),
+  FOREIGN KEY (fkShop) REFERENCES marketsync.Shops(pkShop),
   FOREIGN KEY (fkProduct) REFERENCES marketsync.Products(pkProduct)
 );
 GO
@@ -84,15 +84,11 @@ GO
 -- Create the Logistics table
 CREATE TABLE marketsync.Logistics (
   pkLogistic INT IDENTITY(1,1) PRIMARY KEY,
-  fkShop INT NOT NULL,
-  fkUserBuyer INT,
   fkTransaction INT NOT NULL,
   expectedDeliveryDate DATETIME NOT NULL,
   createDate DATETIME NOT NULL DEFAULT GETDATE(),
   updateDate DATETIME NOT NULL DEFAULT GETDATE(),
   isDelete BIT NOT NULL DEFAULT 0,
-  FOREIGN KEY (fkShop) REFERENCES marketsync.Shops(pkShop),
-  FOREIGN KEY (fkUserBuyer) REFERENCES marketsync.Users(pkUser),
   FOREIGN KEY (fkTransaction) REFERENCES marketsync.Transactions(pkTransaction)
 );
 GO

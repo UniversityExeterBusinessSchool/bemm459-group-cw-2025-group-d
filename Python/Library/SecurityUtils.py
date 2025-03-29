@@ -1,8 +1,11 @@
 
 import sys
 import os
+# Hash Library
 import hashlib
+# JSON Web token
 import jwt
+# Datetime
 from datetime import datetime, timedelta
 # Add the parent directory (Project) to sys.path
 # ENV file

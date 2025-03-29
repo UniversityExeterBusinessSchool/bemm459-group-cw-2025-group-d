@@ -32,6 +32,8 @@ def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query
             row = cursor.fetchone()
             mssql_connection.commit()
             return row
+        elif operation == "INSERT_WITHOUT_FETCH":
+            mssql_connection.commit()
         elif operation in ["UPDATE", "DELETE"]:
             mssql_connection.commit()
     except Exception as error:
@@ -42,8 +44,7 @@ def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query
             cursor.close()
         if mssql_connection is not None:
             mssql_connection.close()
-        print("MSSQL connection is closed")
-
+        # print("MSSQL connection is closed")
 
 def queryFunctionMSSQL(functionQuery, functionParameter):
     try:
@@ -65,7 +66,7 @@ def queryFunctionMSSQL(functionQuery, functionParameter):
         if mssql_connection:
             cursor.close()
             mssql_connection.close()
-            print("MSSQL connection is closed")
+            # print("MSSQL connection is closed")
 
 # MongoDB connection
 def getMongoConnection() -> MongoDatabase:
@@ -76,10 +77,11 @@ def getMongoConnection() -> MongoDatabase:
             username = env.mongoDB_username,
             password = env.mongoDB_password
         )
-        client = mongo_connection[env.mongoDB_database]
-        return client
+        client = mongo_connection
+        return client, env.mongoDB_database
     except Exception as error:
         print("MongoDB Error:" + str(error))
         raise
     finally:
-        print("MongoDB connection is closed")
+        # print("MongoDB connection is closed")
+        pass
