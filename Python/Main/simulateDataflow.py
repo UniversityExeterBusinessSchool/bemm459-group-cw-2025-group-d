@@ -58,7 +58,8 @@ def simulate():
     # get message
     message = getMessageBetweenUserAndShop(users[0], shops[0])
     print(message)
-    
-if __name__ == "__main__":
-    # Code inside this block runs only when the file is executed directly
-    simulate()
+
+simulate()
+# if __name__ == "__main__":
+#     # Code inside this block runs only when the file is executed directly
+#     simulate()

@@ -280,12 +280,11 @@ def cartToPayment(fkUser: int):
         # Insert transaction product
         for item in user["cart"]:
             # Get fkShop from first product
-            fkShop = getfkShopfromProduct(item["pkProduct"])
             queryInsertTransactionProduct = """
-            INSERT INTO marketsync.TransactionProducts (fkTransaction, fkShop, fkProduct, quantity, price)
-            VALUES (?, ?, ?, ?, ?);
+            INSERT INTO marketsync.TransactionProducts (fkTransaction, fkProduct, quantity, price)
+            VALUES (?, ?, ?, ?);
             """
-            queryMSSQL(operation="INSERT_WITHOUT_FETCH", query=queryInsertTransactionProduct, params=(pkTransaction, fkShop, item["pkProduct"], item["quantity"], item["price"]))
+            queryMSSQL(operation="INSERT_WITHOUT_FETCH", query=queryInsertTransactionProduct, params=(pkTransaction, item["pkProduct"], item["quantity"], item["price"]))
         # Insert transaction status
         queryInsertTransactionStatus = """
         INSERT INTO marketsync.TransactionStates (fkTransaction, transactionStatus)
