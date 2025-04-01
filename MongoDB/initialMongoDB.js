@@ -27,7 +27,7 @@ db.createCollection("Users", {
                             city: { bsonType: "string" },
                             state: { bsonType: "string" },
                             country: { bsonType: "string" },
-                            zipCode: { bsonType: "string" }
+                            zipCode: { bsonType: "int" }
                         }
                     }
                 },

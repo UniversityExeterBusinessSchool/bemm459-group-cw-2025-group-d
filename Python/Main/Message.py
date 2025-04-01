@@ -7,11 +7,19 @@ from bson.objectid import ObjectId
 # Library file
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 from DatabaseConnection import getMongoConnection
+from Logger import logError
 from User import validatePKUser
 from Shop import validatePKShop
 from Product import validatePKProduct
 
 def getAllMessageRelateToUser(pkUser):
+    """
+    Gets all messages related to a user.
+    Args:
+        pkUser (int): The primary key of the user.
+    Returns:
+        list: A list of messages related to the user.
+    """
     try:
         # Check if user exist in rdbms database
         validatePKUser(pkUser)
@@ -29,11 +37,22 @@ def getAllMessageRelateToUser(pkUser):
         return messageList
     except Exception as error:
         print("Fail to get message:", error)
+        logError(error=error, function=getAllMessageRelateToUser.__name__, input= {
+            "pkUser": pkUser
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
 
 def getMessageBetweenUserAndShop(pkUserBuyer, pkShop):
+    """
+    Gets all messages between a user and a shop.
+    Args:
+        pkUserBuyer (int): The primary key of the user.
+        pkShop (int): The primary key of the shop.
+    Returns:
+        list: A list of messages between the user and the shop.
+    """
     try:
         # Check if user exist in rdbms database
         validatePKUser(pkUserBuyer)
@@ -50,12 +69,24 @@ def getMessageBetweenUserAndShop(pkUserBuyer, pkShop):
         return message
     except Exception as error:
         print("Fail to get message:", error)
+        logError(error=error, function=getMessageBetweenUserAndShop.__name__, input= {
+            "pkUserBuyer": pkUserBuyer,
+            "pkShop": pkShop
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
 
 def sendUserMessageToShop(pkUser, pkShop, message):
-    from datetime import datetime
+    """
+    Sends a message from a user to a shop.
+    Args:
+        pkUser (int): The primary key of the user.
+        pkShop (int): The primary key of the shop.
+        message (str): The message to send.
+    Returns:
+        dict: The message that was sent.
+    """
     try:
         # Check if user exist in rdbms database
         validatePKUser(pkUser)
@@ -91,12 +122,26 @@ def sendUserMessageToShop(pkUser, pkShop, message):
             return message
     except Exception as error:
         print("Fail to send message:", error)
+        logError(error=error, function=sendUserMessageToShop.__name__, input= {
+            "pkUser": pkUser,
+            "pkShop": pkShop,
+            "message": message
+        })
+        
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
 
 def sendShopMessageToUser(pkUser, pkShop, message):
-    from datetime import datetime
+    """
+    Sends a message from a shop to a user.
+    Args:
+        pkUser (int): The primary key of the user.
+        pkShop (int): The primary key of the shop.
+        message (str): The message to send.
+    Returns:
+        dict: The message that was sent.
+    """
     try:
         # Check if user exist in rdbms database
         validatePKUser(pkUser)
@@ -132,11 +177,25 @@ def sendShopMessageToUser(pkUser, pkShop, message):
             return message
     except Exception as error:
         print("Fail to send message:", error)
+        logError(error=error, function=sendShopMessageToUser.__name__, input= {
+            "pkUser": pkUser,
+            "pkShop": pkShop,
+            "message": message
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
     
 def userReviewProduct(fkUser,fkProduct,review):
+    """
+    Adds a review to a product.
+    Args:
+        fkUser (int): The primary key of the user.
+        fkProduct (int): The primary key of the product.
+        review (dict): The review to add.
+    Returns:
+        dict: The product that was reviewed.
+    """
     try:
         # Check if user exist in rdbms database
         validatePKUser(fkUser)
@@ -164,6 +223,11 @@ def userReviewProduct(fkUser,fkProduct,review):
             return product
     except Exception as error:
         print("Fail to send review:", error)
+        logError(error=error, function=userReviewProduct.__name__, input= {
+            "fkUser": fkUser,
+            "fkProduct": fkProduct,
+            "review": review
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()

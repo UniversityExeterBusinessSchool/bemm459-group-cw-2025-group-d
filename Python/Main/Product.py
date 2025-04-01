@@ -8,10 +8,18 @@ from bson.objectid import ObjectId
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../Library')))
 from DatabaseConnection import queryMSSQL, getMongoConnection
 from ValidatorUtils import validateString, validateSentence, validateStringList, validateImagePath, validateFloatOrDouble
+from Logger import logError
 from Shop import validatePKShop, getShopNameWithPKShop
 from User import validatePKUser
 
 def validateProductGroupId(productGroupId) -> bool:
+    """
+    Validates if a product group ID is valid.
+    Args:
+        productGroupId: The ID of the product group to validate.
+    Raises:
+        ValueError: If the product group ID is invalid.
+    """
     try:
         # Get data from mongodb database
         client,dbname = getMongoConnection()
@@ -24,8 +32,34 @@ def validateProductGroupId(productGroupId) -> bool:
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
-            
+
+def validatePKProduct(pkProduct):
+    """
+    Validates if a product ID is valid.
+    Args:
+        pkProduct: The ID of the product to validate.
+    Raises:
+        ValueError: If the product ID is invalid.
+    """
+    try:        
+        # Get data from rdbms database
+        queryCheckPKProduct =  "SELECT pkproduct FROM marketsync.v_products WHERE pkproduct = ?"
+        product = queryMSSQL(operation="SELECT", query=queryCheckPKProduct, params=(pkProduct))
+        if product is None:
+            raise ValueError(f"Invalid productId: {pkProduct}")
+    except Exception as error:
+        raise
+
 def getfkShopFromProductGroup(productGroupId):
+    """
+    Gets the foreign key of the shop from a product group ID.
+    Args:
+        productGroupId: The ID of the product group.
+    Returns:
+        The foreign key of the shop.
+    Raises:
+        ValueError: If the product group ID is invalid.
+    """
     try:
         # Get data from mongodb database
         client,dbname = getMongoConnection()
@@ -35,30 +69,44 @@ def getfkShopFromProductGroup(productGroupId):
             raise ValueError(f"Invalid productGroupId: {productGroupId}")
         return productGroup["pkShop"]
     except Exception as error:
-        print("Fail to get fkShop from product group:", error)
+        raise
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
 
 def getfkShopfromProduct(pkProduct: int):
+    """
+    Gets the foreign key of the shop from a product ID.
+    Args:
+        pkProduct: The ID of the product.
+    Returns:
+        The foreign key of the shop.
+    Raises:
+        ValueError: If the product ID is invalid.
+    """
     query =  "SELECT fkShop FROM marketsync.v_products WHERE pkProduct = ?"
     shop = queryMSSQL(operation="SELECT", query=query, params=(pkProduct))
     if shop is None:
         raise ValueError(f"Invalid pkProduct: {pkProduct}")
     return shop[0][0]
-
-def validatePKProduct(pkProduct):
-    try:        
-        # Get data from rdbms database
-        queryCheckPKProduct =  "SELECT pkproduct FROM marketsync.v_products WHERE pkproduct = ?"
-        product = queryMSSQL(operation="SELECT", query=queryCheckPKProduct, params=(pkProduct))
-        if product is None:
-            raise ValueError(f"Invalid productId: {pkProduct}")
-    except Exception as error:
-        raise
             
 
 def createProductGroup(fkShop: int, groupName, groupDescription, productImagePath, productCategory, isDelete = False):
+    """
+    Creates a new product group.
+    Args:
+        fkShop (int): The foreign key of the shop.
+        groupName (str): The name of the product group.
+        groupDescription (str): The description of the product group.
+        productImagePath (str): The image path of the product group.
+        productCategory (list): The category of the product group.
+        isDelete (bool): The status of the product group.
+    Returns:
+        ObjectId: The ID of the newly created product group.
+    Raises:
+        ValueError: If any of the input values are invalid.
+        Exception: If there is an error creating the product group.
+    """
     try:
         # Check if shop exist in rdbms database
         validatePKShop(fkShop)
@@ -90,11 +138,33 @@ def createProductGroup(fkShop: int, groupName, groupDescription, productImagePat
         return result.inserted_id
     except Exception as error:
         print("Fail to create ProductGroup:", error)
+        logError(error=error, function=createProductGroup.__name__, input= {
+            "fkShop": fkShop,
+            "groupName": groupName,
+            "groupDescription": groupDescription,
+            "productImagePath": productImagePath,
+            "productCategory": productCategory,
+            "isDelete": isDelete
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
 
 def updateProductGroup(productGroupId, groupName, groupDescription, productImagePath, productCategory):
+    """
+    Updates an existing product group.
+    Args:
+        productGroupId (ObjectId): The ID of the product group to update.
+        groupName (str): The new name of the product group.
+        groupDescription (str): The new description of the product group.
+        productImagePath (str): The new image path of the product group.
+        productCategory (list): The new category of the product group.
+    Returns:
+        int: The number of documents modified.
+    Raises:
+        ValueError: If any of the input values are invalid.
+        Exception: If there is an error updating the product group.
+    """
     try:
         # Validate Value
         validateSentence(groupName, "Group name")
@@ -116,11 +186,28 @@ def updateProductGroup(productGroupId, groupName, groupDescription, productImage
         return result.modified_count
     except Exception as error:
         print("Fail to update product group:", error)
+        logError(error=error, function=updateProductGroup.__name__, input= {
+            "productGroupId": productGroupId,
+            "groupName": groupName,
+            "groupDescription": groupDescription,
+            "productImagePath": productImagePath,
+            "productCategory": productCategory
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
             
 def deleteProductGroup(productGroupId):
+    """
+    Deletes a product group.
+    Args:
+        productGroupId (ObjectId): The ID of the product group to delete.
+    Returns:
+        int: The number of documents modified.
+    Raises:
+        ValueError: If the product group ID is invalid.
+        Exception: If there is an error deleting the product group.
+    """
     try:
         # Delete data to mongodb database
         client,dbname = getMongoConnection()
@@ -133,11 +220,28 @@ def deleteProductGroup(productGroupId):
         return result.modified_count
     except Exception as error:
         print("Fail to delete product group:", error)
+        logError(error=error, function=deleteProductGroup.__name__, input= {
+            "productGroupId": productGroupId
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
 
 def createProductToProductGroup(productGroupId, productName, productDescription, productImagePath, productPrice):
+    """
+    Creates a new product and adds it to a product group.
+    Args:
+        productGroupId (ObjectId): The ID of the product group to add the product to.
+        productName (str): The name of the product.
+        productDescription (str): The description of the product.
+        productImagePath (str): The image path of the product.
+        productPrice (float): The price of the product.
+    Returns:
+        int: The ID of the newly created product.
+    Raises:
+        ValueError: If any of the input values are invalid.
+        Exception: If there is an error creating the product.
+    """
     try:
         # validate product group id
         validateProductGroupId(productGroupId)
@@ -181,12 +285,34 @@ def createProductToProductGroup(productGroupId, productName, productDescription,
         return pkProduct
     except Exception as error:
         print("Fail to add product to group:", error)
+        logError(error=error, function=createProductToProductGroup.__name__, input= {
+            "productGroupId": productGroupId,
+            "productName": productName,
+            "productDescription": productDescription,
+            "productImagePath": productImagePath,
+            "productPrice": productPrice
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
     
 
 def updateProductToProductGroup(productGroupId, fkProduct, productName, productDescription, productImagePath, productPrice):
+    """
+    Updates an existing product within a product group.
+    Args:
+        productGroupId (ObjectId): The ID of the product group containing the product.
+        fkProduct (int): The ID of the product to update.
+        productName (str): The new name of the product.
+        productDescription (str): The new description of the product.
+        productImagePath (str): The new image path of the product.
+        productPrice (float): The new price of the product.
+    Returns:
+        int: The number of documents modified.
+    Raises:
+        ValueError: If any of the input values are invalid or if the product is not found in the group.
+        Exception: If there is an error updating the product.
+    """
     try:
         # validate product group id
         validateProductGroupId(productGroupId)
@@ -195,7 +321,7 @@ def updateProductToProductGroup(productGroupId, fkProduct, productName, productD
         # Validate Value
         validateString(productName, "Product name")
         validateString(productDescription, "Product description")
-        validateImagePathList(productImagePath, "Product image path")
+        validateImagePath(productImagePath, "Product image path")
         validateFloatOrDouble(productPrice, "Product price")
         # Update product name to rdbms dataabase
         queryUpdateProduct = "UPDATE marketsync.Products SET productName = ? WHERE pkProduct = ?"
@@ -203,6 +329,8 @@ def updateProductToProductGroup(productGroupId, fkProduct, productName, productD
         if queryMSSQL(operation="SELECT", query="SELECT pkProduct FROM marketsync.Products WHERE pkProduct = ? AND productName = ?", params=(fkProduct, productName)) is None:
             raise ValueError(f"Failed to update product: {productName}")
         # Check if product exist in product group
+        client,dbname = getMongoConnection()
+        collection = client[dbname]['Products']
         productGroup = collection.find_one({"_id": ObjectId(productGroupId)}, {"product": 1})
         if productGroup is None:
             raise ValueError(f"Invalid productGroupId: {productGroupId}")
@@ -214,8 +342,6 @@ def updateProductToProductGroup(productGroupId, fkProduct, productName, productD
         if not productExist:
             raise ValueError(f"Product {fkProduct} not found in product group {productGroupId}")
         # Update product data to mongodb database
-        client,dbname = getMongoConnection()
-        collection = client[dbname]['Products']
         updatedFields = {
             "product.$.productName": productName,
             "product.$.productDescription": productDescription,
@@ -231,11 +357,30 @@ def updateProductToProductGroup(productGroupId, fkProduct, productName, productD
         return result.modified_count
     except Exception as error:
         print("Fail to update product in group:", error)
+        logError(error=error, function=updateProductToProductGroup.__name__, input= {
+            "productGroupId": productGroupId,
+            "fkProduct": fkProduct,
+            "productName": productName,
+            "productDescription": productDescription,
+            "productImagePath": productImagePath,
+            "productPrice": productPrice
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
             
 def deleteProductFromProductGroup(productGroupId, fkProduct):
+    """
+    Deletes a product from a product group.
+    Args:
+        productGroupId (ObjectId): The ID of the product group to delete the product from.
+        fkProduct (int): The ID of the product to delete.
+    Returns:
+        int: The number of documents modified.
+    Raises:
+        ValueError: If any of the input values are invalid or if the product is not found in the group.
+        Exception: If there is an error deleting the product.
+    """
     try:
         # validate product group id
         validateProductGroupId(productGroupId)
@@ -268,12 +413,25 @@ def deleteProductFromProductGroup(productGroupId, fkProduct):
         return result.modified_count
     except Exception as error:
         print("Fail to delete product in group:", error)
+        logError(error=error, function=deleteProductFromProductGroup.__name__, input= {
+            "productGroupId": productGroupId,
+            "fkProduct": fkProduct
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
         
 def searchProduct(productName):
-    # search productname, productdescription , product.productname or product.productdescription in mongdbo with wildcard
+    """
+    Searches for products based on a product name.
+    Args:
+        productName (str): The name of the product to search for.
+    Returns:
+        list: A list of product groups that match the search criteria.
+    Raises:
+        ValueError: If the product name is invalid.
+        Exception: If there is an error searching for the product.
+    """
     try:
         # Validate Value
         validateString(productName, "Product name")
@@ -296,12 +454,25 @@ def searchProduct(productName):
         return products
     except Exception as error:
         print("Fail to search product:", error)
+        logError(error=error, function=searchProduct.__name__, input= {
+            "productName": productName
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
 
 def searchProductWithCategory(productName,productCategory):
-    # search productname, productdescription, productcategory , product.productname or product.productdescription in mongdbo with wildcard
+    """
+    Searches for products based on a product name and product category.
+    Args:
+        productName (str): The name of the product to search for.
+        productCategory (list): The category of the product to search for.
+    Returns:
+        list: A list of product groups that match the search criteria.
+    Raises:
+        ValueError: If the product name or product category is invalid.
+        Exception: If there is an error searching for the product.
+    """
     try:
         # Validate Value
         validateString(productName, "Product name")
@@ -330,15 +501,26 @@ def searchProductWithCategory(productName,productCategory):
         return products
     except Exception as error:
         print("Fail to search product:", error)
+        logError(error=error, function=searchProductWithCategory.__name__, input= {
+            "productName": productName,
+            "productCategory": productCategory
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()
             
 def getUserRecommendations(pkUser,size):
-    # get most popular product with from user latest 5 user.searchHistory.keyword
-    # size is total number of item need to be return
-    # if user doesn't have at least 5 keyword fill it with all his/her keyword
-    # if user doesn't have any keyword fill it with most popular product without keyword
+    """
+    Gets user recommendations based on their search history and popular products.
+    Args:
+        pkUser (int): The ID of the user to get recommendations for.
+        size (int): The number of recommendations to return.
+    Returns:
+        list: A list of product groups that are recommended for the user.
+    Raises:
+        ValueError: If the user ID or size is invalid.
+        Exception: If there is an error getting the recommendations.
+    """
     try:
         # Check if user exist in rdbms database
         validatePKUser(pkUser)
@@ -382,6 +564,10 @@ def getUserRecommendations(pkUser,size):
         return products
     except Exception as error:
         print("Fail to get user recommendations:", error)
+        logError(error=error, function=getUserRecommendations.__name__, input= {
+            "pkUser": pkUser,
+            "size": size
+        })
     finally:
         if 'client' in locals() and client is not None:  # Check if client exists
             client.close()

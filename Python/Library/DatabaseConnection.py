@@ -13,11 +13,22 @@ import env
 from typing import Literal
 
 def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query: str, params: tuple = ()):
+    """
+    Execute a SQL query on the MSSQL database.
+    Args:
+        operation (Literal["SELECT", "INSERT", "UPDATE", "DELETE"]): The type of SQL operation.
+        query (str): The SQL query string.
+        params (tuple, optional): Parameters for the SQL query. Defaults to ().
+    Raises:
+        Exception: If any error occurs during the database operation.
+    Returns:
+        list or None: The result of the query if it's a SELECT operation, otherwise None.
+    """
     mssql_connection = None
     cursor = None
     try:
         mssql_connection = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};'
+            'DRIVER={SQL Server};'
             'SERVER=' + env.mssql_server + ',' + str(env.mssql_port) + ';'
             'DATABASE=' + env.mssql_database + ';'
             'UID=' + env.mssql_user + ';'
@@ -44,12 +55,21 @@ def queryMSSQL(operation: Literal["SELECT", "INSERT", "UPDATE", "DELETE"], query
             cursor.close()
         if mssql_connection is not None:
             mssql_connection.close()
-        # print("MSSQL connection is closed")
 
 def queryFunctionMSSQL(functionQuery, functionParameter):
+    """
+    Execute a SQL function on the MSSQL database.
+    Args:
+        functionQuery (str): The SQL function query string.
+        functionParameter (tuple, optional): Parameters for the SQL function.
+    Raises:
+        Exception: If any error occurs during the database operation.
+    Returns:
+        list or None: The result of the query if it's a SELECT operation, otherwise None.
+    """
     try:
         mssql_connection = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};'
+            'DRIVER={SQL Server};'
             'SERVER=' + env.mssql_server + ';'
             'DATABASE=' + env.mssql_database + ';'
             'UID=' + env.mssql_user + ';'
@@ -66,10 +86,16 @@ def queryFunctionMSSQL(functionQuery, functionParameter):
         if mssql_connection:
             cursor.close()
             mssql_connection.close()
-            # print("MSSQL connection is closed")
 
 # MongoDB connection
 def getMongoConnection() -> MongoDatabase:
+    """
+    Establish a connection to the MongoDB database.
+    Raises:
+        Exception: If any error occurs during the database operation.
+    Returns:
+        MongoDatabase: The MongoDB database object.
+    """
     try:
         mongo_connection = MongoClient(
             host = env.mongoDB_host,
@@ -83,5 +109,4 @@ def getMongoConnection() -> MongoDatabase:
         print("MongoDB Error:" + str(error))
         raise
     finally:
-        # print("MongoDB connection is closed")
         pass
