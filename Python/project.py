@@ -3011,20 +3011,10 @@ def simulate():
     transactionHistory = getProductGroupTransactionHistory(productGroups[0])
     print(transactionHistory)
     # t.pkTransaction, t.createDate, t.totalPrice, t.fkUserBuyer, tp.quantity, tp.price, p.productName
-    # get transaction history
-    transactionHistory = getProductTransactionHistory(products[0])
-    print(transactionHistory)
-    # t.pkTransaction, t.createDate, t.totalPrice, t.fkUserBuyer, tp.quantity, tp.price, p.productName
     # update shop name
     updateShopName(shops[0], "New Shop Name")
     # soft delete shop
     softDeleteShop(shops[1])
-    # delete product
-    deleteProductGroup(productGroups[2])
-    # update product
-    updateProductToProductGroup(productGroups[0], products[0], "New Product Name", "New Product Description", "newimage.jpg", 99.99)
-    # delete product from product group
-    deleteProductFromProductGroup(productGroups[0], products[1])
     # get user by email
     user = getUserByEmail("user0"+email)
     print(user)
