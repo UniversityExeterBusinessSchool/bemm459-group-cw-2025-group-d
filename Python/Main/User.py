@@ -358,8 +358,7 @@ def loginUser(email: str, password: str) -> str:
     except Exception as error:
         print("Fail to login user:", error)
         logError(error=error, function=loginUser.__name__, input= {
-            "email": email,
-            "password": password
+            "email": email
         })
         return None
     finally:
