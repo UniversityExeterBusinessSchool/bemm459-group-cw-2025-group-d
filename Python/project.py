@@ -25,20 +25,31 @@ import re
 import logging
 
 ##########################################################################################################
-# Initial Data
+# Initial Data# MSsql environment
 # MSsql environment
-mssql_server = "localhost"
-mssql_port = 10001
+# mssql_server = "localhost"
+# mssql_port = 10001
+# mssql_database = "marketsync"
+# mssql_user = "sa"
+# mssql_password = "YourStrong!Passw0rd"
+
+mssql_server = "35.246.97.35"
+mssql_port = 1433
 mssql_database = "marketsync"
-mssql_user = "sa"
-mssql_password = "YourStrong!Passw0rd"
+mssql_user = "marketsyncUser"
+mssql_password = "toDnTgIbF2xf"
 
 # MongoDB environment
+# mongoDB_database = "marketsync"
+# mongoDB_host = "localhost"
+# mongoDB_port = 10003
+# mongoDB_username = "system_admin"
+# mongoDB_password = "marketsyncpassword"
 mongoDB_database = "marketsync"
-mongoDB_host = "localhost"
-mongoDB_port = 10003
-mongoDB_username = "system_admin"
-mongoDB_password = "marketsyncpassword"
+mongoDB_host = "cluster0.igsuhbs.mongodb.net"
+mongoDB_port = 27017
+mongoDB_username = "marketsync_user"
+mongoDB_password = "JxxTxuY69Wh_xN"
 
 # JWT
 jwt_secret = "marketsyncpassword"
@@ -130,13 +141,15 @@ def getMongoConnection() -> MongoDatabase:
         MongoDatabase: The MongoDB database object.
     """
     try:
-        mongo_connection = MongoClient(
-            host = mongoDB_host,
-            port = mongoDB_port,
-            username = mongoDB_username,
-            password = mongoDB_password
-        )
-        client = mongo_connection
+        # mongo_connection = MongoClient(
+        #     host = env.mongoDB_host,
+        #     port = env.mongoDB_port,
+        #     username = env.mongoDB_username,
+        #     password = env.mongoDB_password
+        # )
+        # Mongodb atlas connection
+        mongo_uri = f"mongodb+srv://{mongoDB_username}:{mongoDB_password}@{mongoDB_host}/?retryWrites=true&w=majority"
+        client = MongoClient(mongo_uri)
         return client, mongoDB_database
     except Exception as error:
         print("MongoDB Error:" + str(error))

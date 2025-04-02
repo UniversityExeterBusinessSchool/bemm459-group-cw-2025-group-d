@@ -97,13 +97,15 @@ def getMongoConnection() -> MongoDatabase:
         MongoDatabase: The MongoDB database object.
     """
     try:
-        mongo_connection = MongoClient(
-            host = env.mongoDB_host,
-            port = env.mongoDB_port,
-            username = env.mongoDB_username,
-            password = env.mongoDB_password
-        )
-        client = mongo_connection
+        # mongo_connection = MongoClient(
+        #     host = env.mongoDB_host,
+        #     port = env.mongoDB_port,
+        #     username = env.mongoDB_username,
+        #     password = env.mongoDB_password
+        # )
+        # Mongodb atlas connection
+        mongo_uri = f"mongodb+srv://{env.mongoDB_username}:{env.mongoDB_password}@{env.mongoDB_host}/?retryWrites=true&w=majority"
+        client = MongoClient(mongo_uri)
         return client, env.mongoDB_database
     except Exception as error:
         print("MongoDB Error:" + str(error))

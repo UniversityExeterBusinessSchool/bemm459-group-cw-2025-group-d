@@ -1,1 +1,1 @@
-mongodb://system_admin:marketsyncpassword@localhost:10003
+# mongodb://system_admin:marketsyncpassword@localhost:10003
