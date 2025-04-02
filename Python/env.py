@@ -5,7 +5,7 @@
 # mssql_user = "sa"
 # mssql_password = "YourStrong!Passw0rd"
 
-mssql_server = "35.246.97.35"
+mssql_server = "34.147.139.20"
 mssql_port = 1433
 mssql_database = "marketsync"
 mssql_user = "marketsyncUser"
